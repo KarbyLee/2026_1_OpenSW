@@ -4,19 +4,19 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  box-sizing: border-box;  
+  box-sizing: border-box;
   font-family: 'Pretendard', sans-serif;
 }
 
 body {
-  background-color: transparent; /* Electron 빌드 시 투명 배경을 위해 */
+  background-color: transparent;
 }
 
 .rap {
   max-width: 820px;
   padding: 1.4rem;
   margin: 0 auto;
-  background-color: #fff; /* 바탕화면에서 잘 보이도록 흰색 배경 */
+  background-color: #fff;
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
@@ -28,7 +28,6 @@ body {
   padding: 1rem 2rem;
 }
 
-/* 좌우 화살표 버튼 */
 .btn {
   display: block;
   width: 15px;
@@ -43,7 +42,6 @@ body {
 .prevDay { transform: rotate(-135deg); }
 .nextDay { transform: rotate(45deg); }
 
-/* 그리드 레이아웃 */
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -61,24 +59,192 @@ body {
   font-weight: bold;
 }
 
-.dateBoard div {
-  color: #222;
-  font-weight: 500;
+.dateHead div.sun { background: #e31b20; }
+.dateHead div.sat { background: #1b6ae3; }
+
+/* 날짜 셀 공통 */
+.dateBoard .day-cell {
   min-height: 5rem;
   padding: .8rem;
   border-radius: 8px;
   border: 1px solid #f0f0f0;
   cursor: pointer;
   transition: 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: hidden;
 }
 
-.dateBoard div:hover {
+.dateBoard .day-cell:hover {
   background-color: #fff5f5;
   border-color: #e31b20;
 }
 
-/* 이번 달이 아닌 날짜 스타일 */
+/* 날짜 상단 (숫자 + 공휴일명) */
+.day-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.day-num {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #222;
+  flex-shrink: 0;
+}
+
+/* 공휴일 이름 */
+.holiday-name {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #e31b20;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 토요일 */
+.day-cell.saturday .day-num { color: #1b6ae3; }
+.day-cell.saturday:hover { background-color: #f0f5ff; border-color: #1b6ae3; }
+
+/* 일요일 & 공휴일 */
+.day-cell.sunday .day-num { color: #e31b20; }
+.day-cell.sunday:hover { background-color: #fff0f0; border-color: #e31b20; }
+
+/* 메모 미리보기 */
+.memo-preview {
+  font-size: 0.75rem;
+  color: #666;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  word-break: break-all;
+}
+
+/* 이전/다음 달 빈 칸 */
 .noColor {
-  background: #f9f9f9 !important;
-  color: #ccc !important;
+  background: #f9f9f9;
+  min-height: 5rem;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+/* ===== 모달 ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 1.6rem;
+  width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: modalIn 0.18s ease;
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-date {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #aaa;
+  transition: color 0.15s;
+}
+
+.modal-close:hover { color: #333; }
+
+.memo-input {
+  width: 100%;
+  height: 130px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: .8rem;
+  font-size: 0.95rem;
+  font-family: 'Pretendard', sans-serif;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+  line-height: 1.6;
+}
+
+.memo-input:focus { border-color: #e31b20; }
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .6rem;
+}
+
+.btn-save, .btn-delete {
+  padding: .5rem 1.2rem;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.9rem;
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.btn-save { background: #e31b20; color: #fff; }
+.btn-save:hover { background: #c0151a; }
+
+.btn-delete { background: #f0f0f0; color: #666; }
+.btn-delete:hover { background: #ddd; }
+
+/* 대체공휴일 배지 */
+.holiday-name.substitute {
+  color: #c0151a;
+  background: #ffe5e5;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.62rem;
+}
+
+/* 모달 제목 옆 공휴일 이름 */
+.modal-holiday {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #e31b20;
+  background: #ffe5e5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
+  vertical-align: middle;
 }
