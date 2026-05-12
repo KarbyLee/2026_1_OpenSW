@@ -7,6 +7,24 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- 옵션 아이콘 (전체 화면 왼쪽 상단 고정) -->
+    <img src="Images/optionIcon.png" class="option-icon" id="optionIcon" alt="메뉴">
+
+    <!-- 사이드바 오버레이 -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- 사이드바 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-title">메뉴</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li onclick="location.href='decorate.html'">🎨 캘린더 꾸미기</li>
+        </ul>
+    </div>
+
+    <!-- 캘린더 본체 -->
     <div class="rap">
         <div class="header">
             <div class="btn prevDay"></div>

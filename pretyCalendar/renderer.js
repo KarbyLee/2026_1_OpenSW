@@ -65,6 +65,11 @@ const makeCalendar = async (targetDate) => {
   const nextDay  = Math.ceil(limitDay / 7) * 7;
 
   const memos = getMemos();
+
+  // 오늘 날짜
+  const today = new Date();
+  const todayKey = makeDateKey(today.getFullYear(), today.getMonth() + 1, today.getDate());
+
   let html = '';
 
   // 이전 달 빈 칸
@@ -78,6 +83,7 @@ const makeCalendar = async (targetDate) => {
     const dateKey   = makeDateKey(currentYear, currentMonth, i);
     const memo      = memos[dateKey] || '';
     const holidayName = holidays[dateKey] || null;
+    const isToday   = dateKey === todayKey;
 
     let colorClass = '';
     let badgeHtml  = '';
@@ -92,6 +98,8 @@ const makeCalendar = async (targetDate) => {
       colorClass = ' saturday';
     }
 
+    if (isToday) colorClass += ' today';
+
     const memoHtml = memo ? `<span class="memo-preview">${memo}</span>` : '';
 
     html += `<div class="day-cell${colorClass}"
@@ -101,7 +109,7 @@ const makeCalendar = async (targetDate) => {
       data-month="${currentMonth}"
       data-holiday="${holidayName || ''}">
       <div class="day-top">
-        <span class="day-num">${i}</span>
+        <span class="day-num${isToday ? ' today-num' : ''}">${i}</span>
         ${badgeHtml}
       </div>
       ${memoHtml}
@@ -181,3 +189,25 @@ document.querySelector('.nextDay').onclick = () => {
   date.setMonth(date.getMonth() + 1);
   makeCalendar(new Date(date));
 };
+// ===== 사이드바 =====
+const sidebar        = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const optionIcon     = document.getElementById('optionIcon');
+
+const openSidebar = () => {
+  sidebar.classList.add('open');
+  sidebarOverlay.classList.add('active');
+};
+
+const closeSidebar = () => {
+  sidebar.classList.remove('open');
+  sidebarOverlay.classList.remove('active');
+};
+
+// 아이콘 클릭: 토글
+optionIcon.addEventListener('click', () => {
+  sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+});
+
+// 사이드바 바깥(오버레이) 클릭: 닫기
+sidebarOverlay.addEventListener('click', closeSidebar);

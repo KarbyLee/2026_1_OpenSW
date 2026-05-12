@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>캘린더 꾸미기</title>
+  <link rel="stylesheet" href="decorate.css">
+</head>
+<body>
+
+  <!-- 페이지 최상단 타이틀 -->
+  <div class="page-header">
+    <h1 class="page-title">캘린더 꾸미기</h1>
+  </div>
+
+  <div class="page">
+
+    <!-- 왼쪽: 미리보기 캘린더 -->
+    <div class="preview-wrap">
+      <div class="cal" id="previewCal">
+        <div class="cal-header">
+          <div class="cal-arrow">‹</div>
+          <h2 class="cal-title">NNNN년 N월 N일</h2>
+          <div class="cal-arrow">›</div>
+        </div>
+
+        <div class="cal-grid cal-head">
+          <div class="sun">일</div>
+          <div>월</div><div>화</div><div>수</div><div>목</div><div>금</div>
+          <div class="sat">토</div>
+        </div>
+
+        <div class="cal-grid cal-body" id="previewBoard"></div>
+      </div>
+    </div>
+
+    <!-- 오른쪽: 꾸미기 사이드바 -->
+    <aside class="deco-sidebar">
+      <div class="deco-top">
+        <h2 class="deco-title">꾸미기 요소</h2>
+
+        <!-- 폰트 섹션 -->
+        <section class="deco-section">
+          <h3 class="deco-section-title">폰트</h3>
+          <div class="deco-divider"></div>
+
+          <div class="deco-row">
+            <label class="deco-label">폰트 종류</label>
+            <select class="deco-select" id="fontFamily">
+              <option value="'Pretendard', sans-serif">Pretendard</option>
+              <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
+              <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
+              <option value="'Nanum Myeongjo', serif">나눔명조</option>
+              <option value="'Malgun Gothic', sans-serif">맑은 고딕</option>
+              <option value="'Gowun Dodum', sans-serif">고운돋움</option>
+            </select>
+          </div>
+
+          <div class="deco-row">
+            <label class="deco-label">폰트 사이즈</label>
+            <select class="deco-select" id="fontSize">
+              <option value="0.78rem">작게</option>
+              <option value="0.92rem" selected>보통</option>
+              <option value="1.08rem">크게</option>
+              <option value="1.22rem">매우 크게</option>
+            </select>
+          </div>
+        </section>
+
+        <div class="deco-divider"></div>
+
+        <!-- 백그라운드 섹션 -->
+        <section class="deco-section">
+          <h3 class="deco-section-title">백그라운드</h3>
+          <div class="deco-divider"></div>
+          <div class="deco-options bg-options">
+            <button class="deco-btn active" data-bg="#ffffff" style="background:#ffffff; border:1.5px solid #ccc;">흰색</button>
+            <button class="deco-btn" data-bg="#f0f4ff" style="background:#f0f4ff;">하늘</button>
+            <button class="deco-btn" data-bg="#fff8f0" style="background:#fff8f0;">크림</button>
+            <button class="deco-btn" data-bg="#f0fff4" style="background:#f0fff4;">민트</button>
+            <button class="deco-btn" data-bg="#fdf0ff" style="background:#fdf0ff;">라벤더</button>
+            <button class="deco-btn dark-btn" data-bg="#1e1e2e" style="background:#1e1e2e; color:#fff;">다크</button>
+          </div>
+        </section>
+
+        <div class="deco-divider"></div>
+      </div>
+
+      <!-- 하단 버튼 -->
+      <div class="deco-actions">
+        <button class="deco-save" id="btnDecoSave">저장</button>
+        <button class="deco-exit" id="btnDecoExit">나가기</button>
+      </div>
+    </aside>
+
+  </div>
+
+  <script src="decorate.js"></script>
+</body>
+</html>

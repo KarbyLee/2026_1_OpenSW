@@ -12,12 +12,28 @@ body {
   background-color: transparent;
 }
 
+/* ===== 옵션 아이콘 (전체 화면 왼쪽 상단 고정) ===== */
+.option-icon {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  z-index: 400;
+}
+
+.option-icon:hover { opacity: 1; }
+
+/* ===== 캘린더 (1.5배 확대) ===== */
 .rap {
-  max-width: 820px;
-  padding: 1.4rem;
+  max-width: 1025px;       /* 820 * 1.5 */
+  padding: 1.75rem;         /* 1.4 * 1.5 */
   margin: 0 auto;
   background-color: #fff;
-  border-radius: 15px;
+  border-radius: 19px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
@@ -25,13 +41,17 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 1.25rem 2.5rem;    /* 1 * 1.5 / 2 * 1.5 */
+}
+
+.header h2 {
+  font-size: 1.5rem;
 }
 
 .btn {
   display: block;
-  width: 15px;
-  height: 15px;
+  width: 19px;             /* 15 * 1.5 */
+  height: 19px;
   border: 3px solid #333;
   border-width: 3px 3px 0 0;
   cursor: pointer;
@@ -45,18 +65,20 @@ body {
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-gap: 8px;
+  grid-gap: 10px;          /* 8 * 1.5 */
 }
 
-.dateHead { margin: .5rem 0; }
+.dateHead { margin: .6rem 0; }
 
+/* 요일 헤더 공통 - 검은색 */
 .dateHead div {
-  background: #e31b20;
+  background: #333;
   color: #fff;
   text-align: center;
-  border-radius: 5px;
-  padding: .6rem;
+  border-radius: 6px;
+  padding: .75rem;          /* .6 * 1.5 */
   font-weight: bold;
+  font-size: 1rem;
 }
 
 .dateHead div.sun { background: #e31b20; }
@@ -64,15 +86,15 @@ body {
 
 /* 날짜 셀 공통 */
 .dateBoard .day-cell {
-  min-height: 5rem;
-  padding: .8rem;
-  border-radius: 8px;
+  min-height: 6.25rem;      /* 5 * 1.5 */
+  padding: 1rem;         /* .8 * 1.5 */
+  border-radius: 10px;
   border: 1px solid #f0f0f0;
   cursor: pointer;
   transition: 0.2s;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   overflow: hidden;
 }
 
@@ -81,29 +103,37 @@ body {
   border-color: #e31b20;
 }
 
-/* 날짜 상단 (숫자 + 공휴일명) */
 .day-top {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
 .day-num {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1.1rem;       /* .95 * 1.15 */
   color: #222;
   flex-shrink: 0;
 }
 
 /* 공휴일 이름 */
 .holiday-name {
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: #e31b20;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* 대체공휴일 배지 */
+.holiday-name.substitute {
+  color: #c0151a;
+  background: #ffe5e5;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.72rem;
 }
 
 /* 토요일 */
@@ -116,7 +146,7 @@ body {
 
 /* 메모 미리보기 */
 .memo-preview {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: #666;
   line-height: 1.4;
   overflow: hidden;
@@ -129,8 +159,8 @@ body {
 /* 이전/다음 달 빈 칸 */
 .noColor {
   background: #f9f9f9;
-  min-height: 5rem;
-  border-radius: 8px;
+  min-height: 6.25rem;
+  border-radius: 10px;
   border: 1px solid #f0f0f0;
 }
 
@@ -145,9 +175,7 @@ body {
   justify-content: center;
 }
 
-.modal-overlay.active {
-  display: flex;
-}
+.modal-overlay.active { display: flex; }
 
 .modal {
   background: #fff;
@@ -173,7 +201,7 @@ body {
 }
 
 .modal-date {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #222;
 }
@@ -181,7 +209,7 @@ body {
 .modal-close {
   background: none;
   border: none;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
   color: #aaa;
   transition: color 0.15s;
@@ -214,7 +242,7 @@ body {
 .btn-save, .btn-delete {
   padding: .5rem 1.2rem;
   border: none;
-  border-radius: 7px;
+  border-radius: 6px;
   font-size: 0.9rem;
   font-family: 'Pretendard', sans-serif;
   font-weight: 600;
@@ -228,15 +256,6 @@ body {
 .btn-delete { background: #f0f0f0; color: #666; }
 .btn-delete:hover { background: #ddd; }
 
-/* 대체공휴일 배지 */
-.holiday-name.substitute {
-  color: #c0151a;
-  background: #ffe5e5;
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-size: 0.62rem;
-}
-
 /* 모달 제목 옆 공휴일 이름 */
 .modal-holiday {
   font-size: 0.75rem;
@@ -247,4 +266,112 @@ body {
   border-radius: 4px;
   margin-left: 4px;
   vertical-align: middle;
+}
+
+/* ===== 사이드바 ===== */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+.sidebar-overlay.active { display: block; }
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 25vw;
+  min-width: 200px;
+  height: 100vh;
+  background: rgba(30, 30, 30, 0.70);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 300;
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
+
+.sidebar.open { transform: translateX(0); }
+
+.sidebar-header {
+  padding: 4rem 1.5rem 1.2rem;  /* 위쪽 여백 4rem → 아이콘 아래로 밀림 */
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.sidebar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.sidebar-menu {
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-menu li {
+  padding: 0.85rem 1.5rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 6px;
+  margin: 0 0.4rem;
+}
+
+.sidebar-menu li:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+/* ===== 오늘 날짜 강조 ===== */
+
+/* 평일 오늘: 회색 계열 */
+.day-cell.today {
+  background-color: #f5f5f5;
+  border: 2.5px solid #bbb;
+}
+.day-cell.today:hover {
+  background-color: #eeeeee;
+  border-color: #999;
+}
+.day-num.today-num {
+  font-weight: 900;
+  background-color: #d6d6d6;
+  color: #222;
+  border-radius: 5px;
+  padding: 1px 5px;
+  display: inline-block;
+}
+
+/* 일요일/공휴일 오늘: 붉은색 계열 */
+.day-cell.today.sunday {
+  background-color: #fff0f0;
+  border: 2.5px solid #e31b20;
+}
+.day-cell.today.sunday:hover {
+  background-color: #ffe5e5;
+  border-color: #c0151a;
+}
+.day-cell.today.sunday .day-num.today-num {
+  background-color: #f9a8a8;
+  color: #a00;
+}
+
+/* 토요일 오늘: 파란색 계열 */
+.day-cell.today.saturday {
+  background-color: #f0f5ff;
+  border: 2.5px solid #1b6ae3;
+}
+.day-cell.today.saturday:hover {
+  background-color: #e5eeff;
+  border-color: #1455c0;
+}
+.day-cell.today.saturday .day-num.today-num {
+  background-color: #a8c4f9;
+  color: #0a3a99;
 }
