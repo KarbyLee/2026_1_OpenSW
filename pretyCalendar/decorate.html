@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -8,7 +8,6 @@
 </head>
 <body>
 
-  <!-- 페이지 최상단 타이틀 -->
   <div class="page-header">
     <h1 class="page-title">캘린더 꾸미기</h1>
   </div>
@@ -23,13 +22,11 @@
           <h2 class="cal-title">NNNN년 N월 N일</h2>
           <div class="cal-arrow">›</div>
         </div>
-
         <div class="cal-grid cal-head">
           <div class="sun">일</div>
           <div>월</div><div>화</div><div>수</div><div>목</div><div>금</div>
           <div class="sat">토</div>
         </div>
-
         <div class="cal-grid cal-body" id="previewBoard"></div>
       </div>
     </div>
@@ -47,23 +44,104 @@
           <div class="deco-row">
             <label class="deco-label">폰트 종류</label>
             <select class="deco-select" id="fontFamily">
-              <option value="'Pretendard', sans-serif">Pretendard</option>
-              <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
-              <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
-              <option value="'Nanum Myeongjo', serif">나눔명조</option>
-              <option value="'Malgun Gothic', sans-serif">맑은 고딕</option>
-              <option value="'Gowun Dodum', sans-serif">고운돋움</option>
+              <option value="'Pretendard', sans-serif" style="font-family:'Pretendard',sans-serif">기본</option>
+              <option value="'NanumMyeongjo', serif" style="font-family:'NanumMyeongjo',serif">나눔명조</option>
+              <option value="'GraceSerif', serif" style="font-family:'GraceSerif',serif">우아한 셰리프</option>
+              <option value="'MonaS12TextKR', sans-serif" style="font-family:'MonaS12TextKR',sans-serif">Mona12</option>
             </select>
           </div>
 
           <div class="deco-row">
-            <label class="deco-label">폰트 사이즈</label>
-            <select class="deco-select" id="fontSize">
-              <option value="0.78rem">작게</option>
-              <option value="0.92rem" selected>보통</option>
-              <option value="1.08rem">크게</option>
-              <option value="1.22rem">매우 크게</option>
-            </select>
+            <label class="deco-label">폰트 사이즈 (px)</label>
+            <div class="size-input-wrap">
+              <input type="number" class="size-input" id="fontSize" value="14" min="8" max="32">
+              <div class="size-btns">
+                <button class="size-btn" id="sizeUp">▲</button>
+                <button class="size-btn" id="sizeDown">▼</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="deco-row">
+            <label class="deco-label">폰트 색상</label>
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="fontPanel-week">
+                <span class="toggle-dot" id="dot-week" style="background:#222222"></span>
+                평일
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="fontPanel-week">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="fontRgbBox-week">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="fontRgbCursor-week"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="fontHue-week" min="0" max="360" value="0">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="fontHex-week" maxlength="6" placeholder="222222">
+                    <div class="color-preview-dot" id="fontDot-week"></div>
+                  </div>
+                  <button class="reset-btn" data-key="week" data-default="222222">초기화</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="fontPanel-sat">
+                <span class="toggle-dot" id="dot-sat" style="background:#1b6ae3"></span>
+                토요일
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="fontPanel-sat">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="fontRgbBox-sat">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="fontRgbCursor-sat"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="fontHue-sat" min="0" max="360" value="210">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="fontHex-sat" maxlength="6" placeholder="1b6ae3">
+                    <div class="color-preview-dot" id="fontDot-sat"></div>
+                  </div>
+                  <button class="reset-btn" data-key="sat" data-default="1b6ae3">초기화</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="fontPanel-sun">
+                <span class="toggle-dot" id="dot-sun" style="background:#e31b20"></span>
+                일요일 / 공휴일
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="fontPanel-sun">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="fontRgbBox-sun">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="fontRgbCursor-sun"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="fontHue-sun" min="0" max="360" value="1">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="fontHex-sun" maxlength="6" placeholder="e31b20">
+                    <div class="color-preview-dot" id="fontDot-sun"></div>
+                  </div>
+                  <button class="reset-btn" data-key="sun" data-default="e31b20">초기화</button>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -73,26 +151,138 @@
         <section class="deco-section">
           <h3 class="deco-section-title">백그라운드</h3>
           <div class="deco-divider"></div>
-          <div class="deco-options bg-options">
-            <button class="deco-btn active" data-bg="#ffffff" style="background:#ffffff; border:1.5px solid #ccc;">흰색</button>
-            <button class="deco-btn" data-bg="#f0f4ff" style="background:#f0f4ff;">하늘</button>
-            <button class="deco-btn" data-bg="#fff8f0" style="background:#fff8f0;">크림</button>
-            <button class="deco-btn" data-bg="#f0fff4" style="background:#f0fff4;">민트</button>
-            <button class="deco-btn" data-bg="#fdf0ff" style="background:#fdf0ff;">라벤더</button>
-            <button class="deco-btn dark-btn" data-bg="#1e1e2e" style="background:#1e1e2e; color:#fff;">다크</button>
+
+          <div class="deco-row">
+            <label class="deco-label">배경 색상</label>
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="bgPanel-page">
+                <span class="toggle-dot" id="dot-bg" style="background:#ffffff"></span>
+                전체 배경
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="bgPanel-page">
+                <div class="deco-options bg-options">
+                  <button class="deco-btn active" data-theme="light" data-bg="#ffffff" style="background:#ffffff; border:1.5px solid #ccc;">흰색</button>
+                  <button class="deco-btn" data-theme="dark" data-bg="#000000" style="background:#000000; color:#fff;">검정</button>
+                </div>
+                <div class="color-picker-wrap panel-picker">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="bgRgbBox">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="bgRgbCursor"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="bgHueSlider" min="0" max="360" value="0">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="bgHexInput" maxlength="6" placeholder="ffffff">
+                    <div class="color-preview-dot" id="bgColorDot"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="bgPanel-defaultCell">
+                <span class="toggle-dot" id="dot-defaultCell" style="background:#ffffff"></span>
+                기본 칸
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="bgPanel-defaultCell">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="defaultCellRgbBox">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="defaultCellRgbCursor"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="defaultCellHueSlider" min="0" max="360" value="0">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="defaultCellHexInput" maxlength="6" placeholder="ffffff">
+                    <div class="color-preview-dot" id="defaultCellColorDot"></div>
+                  </div>
+                  <button class="reset-btn" data-key="defaultCell" data-default="ffffff">초기화</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="bgPanel-otherCell">
+                <span class="toggle-dot" id="dot-otherCell" style="background:#969696"></span>
+                이전 달 / 다음 달 칸
+                <span class="opacity-badge" id="otherOpacityBadge">30%</span>
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="bgPanel-otherCell">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="otherRgbBox">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="otherRgbCursor"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="otherHueSlider" min="0" max="360" value="0">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="otherHexInput" maxlength="6" placeholder="969696">
+                    <div class="color-preview-dot" id="otherColorDot"></div>
+                  </div>
+                  <div class="opacity-row">
+                    <label class="opacity-label" for="otherOpacity">불투명도</label>
+                    <input type="range" class="opacity-slider" id="otherOpacity" min="0" max="100" value="30">
+                  </div>
+                  <button class="reset-btn" data-key="other" data-default="969696">초기화</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="bgPanel-highlight">
+                <span class="toggle-dot" id="dot-highlight" style="background:#646464"></span>
+                하이라이트 표시
+                <span class="opacity-badge" id="highlightOpacityBadge">13%</span>
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="bgPanel-highlight">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="highlightRgbBox">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="highlightRgbCursor"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="highlightHueSlider" min="0" max="360" value="0">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="highlightHexInput" maxlength="6" placeholder="646464">
+                    <div class="color-preview-dot" id="highlightColorDot"></div>
+                  </div>
+                  <div class="opacity-row">
+                    <label class="opacity-label" for="highlightOpacity">불투명도</label>
+                    <input type="range" class="opacity-slider" id="highlightOpacity" min="0" max="100" value="13">
+                  </div>
+                  <button class="reset-btn" data-key="highlight" data-default="646464">초기화</button>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
         <div class="deco-divider"></div>
       </div>
 
-      <!-- 하단 버튼 -->
       <div class="deco-actions">
         <button class="deco-save" id="btnDecoSave">저장</button>
+        <button class="deco-apply" id="btnDecoApply" type="button">적용</button>
         <button class="deco-exit" id="btnDecoExit">나가기</button>
       </div>
     </aside>
-
   </div>
 
   <script src="decorate.js"></script>
