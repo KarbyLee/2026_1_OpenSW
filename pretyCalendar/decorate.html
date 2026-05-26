@@ -65,6 +65,32 @@
           <div class="deco-row">
             <label class="deco-label">폰트 색상</label>
 
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="fontPanel-title">
+                <span class="toggle-dot" id="dot-title" style="background:#222222"></span>
+                타이틀
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="fontPanel-title">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="fontRgbBox-title">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="fontRgbCursor-title"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="fontHue-title" min="0" max="360" value="0">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="fontHex-title" maxlength="6" placeholder="222222">
+                    <div class="color-preview-dot" id="fontDot-title"></div>
+                  </div>
+                  <button class="reset-btn" data-key="title" data-default="222222">초기화</button>
+                </div>
+              </div>
+            </div>
             <div class="toggle-group">
               <button class="toggle-header" data-target="fontPanel-week">
                 <span class="toggle-dot" id="dot-week" style="background:#222222"></span>
@@ -449,14 +475,14 @@
       </div>
 
       <div class="deco-actions">
-        <button class="deco-save" id="btnDecoSave">저장</button>
+        <button class="deco-save" id="btnDecoSave">스타일 불러오기</button>
         <button class="deco-apply" id="btnDecoApply" type="button">적용</button>
         <button class="deco-exit" id="btnDecoExit">나가기</button>
       </div>
     </aside>
   </div>
 
-  <!-- 적용 확인 모달 -->
+  <!-- 확인 모달 -->
   <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-box">
       <p class="confirm-msg" id="confirmMsg">적용하시겠습니까?</p>
@@ -470,3 +496,4 @@
   <script src="decorate.js"></script>
 </body>
 </html>
+

@@ -1,4 +1,4 @@
-// 공공데이터포털 일반 인증키
+﻿// 공공데이터포털 일반 인증키
 const SERVICE_KEY = '7d3e97e35d4372badd887c4c6d7bfaa7d66ad258a95d45f76079d007b0380974';
 const API_URL = 'https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo';
 
@@ -72,9 +72,11 @@ const makeCalendar = async (targetDate) => {
 
   let html = '';
 
-  // 이전 달 빈 칸
+  // 이전 달 칸
+  const prevLastDay = new Date(currentYear, currentMonth - 1, 0).getDate();
   for (let i = 0; i < firstDay; i++) {
-    html += `<div class="noColor"></div>`;
+    const prevDay = prevLastDay - (firstDay - 1 - i);
+    html += `<div class="noColor"><span class="noColor-num">${prevDay}</span></div>`;
   }
 
   // 이번 달 날짜
@@ -116,9 +118,10 @@ const makeCalendar = async (targetDate) => {
     </div>`;
   }
 
-  // 다음 달 빈 칸
+  // 다음 달 칸
+  let nextMonthDay = 1;
   for (let i = limitDay; i < nextDay; i++) {
-    html += `<div class="noColor"></div>`;
+    html += `<div class="noColor"><span class="noColor-num">${nextMonthDay++}</span></div>`;
   }
 
   document.querySelector('.dateBoard').innerHTML = html;
@@ -201,6 +204,7 @@ const applyTheme = () => {
       root.style.setProperty('--font-week-color', t.fontColors.week || '#222');
       root.style.setProperty('--font-sat-color',  t.fontColors.sat  || '#1b6ae3');
       root.style.setProperty('--font-sun-color',  t.fontColors.sun  || '#e31b20');
+      root.style.setProperty('--title-color',     t.fontColors.title || t.fontColors.week || '#222');
     }
 
     if (t.defaultCell) root.style.setProperty('--cell-bg', t.defaultCell);
@@ -209,7 +213,11 @@ const applyTheme = () => {
       const r = parseInt(t.otherCell.slice(1,3),16);
       const g = parseInt(t.otherCell.slice(3,5),16);
       const b = parseInt(t.otherCell.slice(5,7),16);
-      root.style.setProperty('--other-overlay-color', `rgba(${r},${g},${b},${t.otherOpacity})`);
+      const otherRgba = `rgba(${r},${g},${b},${t.otherOpacity})`;
+      root.style.setProperty('--other-cell-bg', otherRgba);
+      root.style.setProperty('--other-number-color', t.otherCell);
+      root.style.setProperty('--other-number-opacity', t.otherOpacity);
+      root.style.setProperty('--other-overlay-color', 'transparent');
     }
 
     if (t.highlightColor && t.highlightOpacity !== undefined) {

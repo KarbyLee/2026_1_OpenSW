@@ -42,6 +42,7 @@ body {
 .cal {
   --default-cell-color: #ffffff;
   --other-cell-color: rgba(150,150,150,0.3);
+  --other-number-color: #969696;
   --other-number-opacity: 0.3;
   --highlight-rgb: 100,100,100;
   --highlight-opacity: 0.13;
@@ -104,6 +105,12 @@ body {
   background: var(--other-cell-color);
   border-radius: 9px;
   pointer-events: none;
+  z-index: 0;
+}
+
+.cal-body .p-cell.p-other .p-day-top {
+  position: relative;
+  z-index: 1;
 }
 
 .cal-body .p-cell.p-today::after {
@@ -125,7 +132,10 @@ body {
 }
 .p-num.red { color:#e31b20; }
 .p-num.blue { color:#1b6ae3; }
-.p-num.other { opacity: var(--other-number-opacity); }
+.p-num.other {
+  color: var(--other-number-color);
+  opacity: var(--other-number-opacity);
+}
 
 .p-num.today-num {
   background: rgba(var(--highlight-rgb), var(--highlight-opacity));
@@ -507,3 +517,4 @@ body {
 .confirm-yes:hover { background: #c0151a; }
 .confirm-no  { background: #f0f0f0; color: #555; }
 .confirm-no:hover  { background: #e0e0e0; }
+

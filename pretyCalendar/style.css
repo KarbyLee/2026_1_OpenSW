@@ -1,4 +1,4 @@
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+﻿@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
 
 /* ===== 커스텀 폰트 ===== */
 @font-face { font-family:'GraceSerif';    src:url('Fonts/GraceSerif.ttf') format('truetype'); }
@@ -61,6 +61,7 @@ body {
 
 .header h2 {
   font-size: 1.5rem;
+  color: var(--title-color, var(--font-week-color, #222));
 }
 
 .btn {
@@ -187,6 +188,16 @@ body {
   inset: 0;
   background: var(--other-overlay-color, transparent);
   pointer-events: none;
+}
+.noColor-num {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  padding: 1rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--other-number-color, #969696);
+  opacity: var(--other-number-opacity, 0.3);
 }
 
 /* ===== 모달 ===== */
@@ -400,3 +411,4 @@ body {
   background-color: #a8c4f9;
   color: #0a3a99;
 }
+
