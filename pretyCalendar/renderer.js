@@ -14,6 +14,25 @@ const saveMemos = (memos) => localStorage.setItem('calendarMemos', JSON.stringif
 const makeDateKey = (year, month, day) =>
   `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
+const hexToRgba = (hex, opacity) => {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${opacity})`;
+};
+
+const getAppliedTheme = () => {
+  let theme = {};
+  try { theme = JSON.parse(localStorage.getItem('calendarTheme') || '{}'); }
+  catch { theme = {}; }
+
+  // 예전 저장 키가 남아 있어도 이전/다음 달 칸은 반드시 따라오게 보정
+  theme.otherCell = theme.otherCell || localStorage.getItem('decoOtherColor') || '#969696';
+  theme.otherOpacity = theme.otherOpacity ?? Number(localStorage.getItem('decoOtherOpacity') || 0.3);
+
+  return theme;
+};
+
 // 연도 단위로 공휴일 전체 fetch (예시 코드 방식 그대로)
 const fetchHolidaysByYear = async (year) => {
   if (holidayCache[year]) return holidayCache[year];
@@ -71,12 +90,18 @@ const makeCalendar = async (targetDate) => {
   const todayKey = makeDateKey(today.getFullYear(), today.getMonth() + 1, today.getDate());
 
   let html = '';
+  const appliedTheme = getAppliedTheme();
+  const hasOtherTheme = appliedTheme.otherCell && appliedTheme.otherOpacity !== undefined;
+  const otherOpacity = hasOtherTheme ? Number(appliedTheme.otherOpacity) : 0.3;
+  const otherColor = hasOtherTheme ? appliedTheme.otherCell : '#969696';
+  const otherCellStyle = ` style="background-color:${hexToRgba(otherColor, otherOpacity)} !important;"`;
+  const otherNumStyle = ` style="color:${otherColor};opacity:${otherOpacity}"`;
 
   // 이전 달 칸
   const prevLastDay = new Date(currentYear, currentMonth - 1, 0).getDate();
   for (let i = 0; i < firstDay; i++) {
     const prevDay = prevLastDay - (firstDay - 1 - i);
-    html += `<div class="noColor"><span class="noColor-num">${prevDay}</span></div>`;
+    html += `<div class="noColor"${otherCellStyle}><span class="noColor-num"${otherNumStyle}>${prevDay}</span></div>`;
   }
 
   // 이번 달 날짜
@@ -121,7 +146,7 @@ const makeCalendar = async (targetDate) => {
   // 다음 달 칸
   let nextMonthDay = 1;
   for (let i = limitDay; i < nextDay; i++) {
-    html += `<div class="noColor"><span class="noColor-num">${nextMonthDay++}</span></div>`;
+    html += `<div class="noColor"${otherCellStyle}><span class="noColor-num"${otherNumStyle}>${nextMonthDay++}</span></div>`;
   }
 
   document.querySelector('.dateBoard').innerHTML = html;
@@ -198,16 +223,16 @@ const applyTheme = () => {
       root.style.setProperty('--cal-font-size', t.fontSize);
       root.style.fontSize = t.fontSize;
     }
-    if (t.bg) root.style.setProperty('--cal-bg', t.bg);
+    if (t.bg) root.style.setProperty('--cal-bg', hexToRgba(t.bg, t.bgOpacity ?? 1));
 
     if (t.fontColors) {
-      root.style.setProperty('--font-week-color', t.fontColors.week || '#222');
-      root.style.setProperty('--font-sat-color',  t.fontColors.sat  || '#1b6ae3');
-      root.style.setProperty('--font-sun-color',  t.fontColors.sun  || '#e31b20');
-      root.style.setProperty('--title-color',     t.fontColors.title || t.fontColors.week || '#222');
+      root.style.setProperty('--font-week-color', hexToRgba(t.fontColors.week || '#222222', t.fontOpacities?.week ?? 1));
+      root.style.setProperty('--font-sat-color',  hexToRgba(t.fontColors.sat  || '#1b6ae3', t.fontOpacities?.sat ?? 1));
+      root.style.setProperty('--font-sun-color',  hexToRgba(t.fontColors.sun  || '#e31b20', t.fontOpacities?.sun ?? 1));
+      root.style.setProperty('--title-color',     hexToRgba(t.fontColors.title || t.fontColors.week || '#222222', t.fontOpacities?.title ?? t.fontOpacities?.week ?? 1));
     }
 
-    if (t.defaultCell) root.style.setProperty('--cell-bg', t.defaultCell);
+    if (t.defaultCell) root.style.setProperty('--cell-bg', hexToRgba(t.defaultCell, t.defaultCellOpacity ?? 1));
 
     if (t.otherCell && t.otherOpacity !== undefined) {
       const r = parseInt(t.otherCell.slice(1,3),16);
@@ -235,15 +260,15 @@ const applyTheme = () => {
     }
 
     if (t.headColors) {
-      root.style.setProperty('--head-week-bg',  t.headColors.week || '#333');
-      root.style.setProperty('--head-sat-bg',   t.headColors.sat  || '#1b6ae3');
-      root.style.setProperty('--head-sun-bg',   t.headColors.sun  || '#e31b20');
+      root.style.setProperty('--head-week-bg',  hexToRgba(t.headColors.week || '#333333', t.headOpacities?.week ?? 1));
+      root.style.setProperty('--head-sat-bg',   hexToRgba(t.headColors.sat  || '#1b6ae3', t.headOpacities?.sat ?? 1));
+      root.style.setProperty('--head-sun-bg',   hexToRgba(t.headColors.sun  || '#e31b20', t.headOpacities?.sun ?? 1));
     }
 
     if (t.headFontColors) {
-      root.style.setProperty('--head-week-font', t.headFontColors.week || '#fff');
-      root.style.setProperty('--head-sat-font',  t.headFontColors.sat  || '#fff');
-      root.style.setProperty('--head-sun-font',  t.headFontColors.sun  || '#fff');
+      root.style.setProperty('--head-week-font', hexToRgba(t.headFontColors.week || '#ffffff', t.headFontOpacities?.week ?? 1));
+      root.style.setProperty('--head-sat-font',  hexToRgba(t.headFontColors.sat  || '#ffffff', t.headFontOpacities?.sat ?? 1));
+      root.style.setProperty('--head-sun-font',  hexToRgba(t.headFontColors.sun  || '#ffffff', t.headFontOpacities?.sun ?? 1));
     }
   } catch(e) { console.error('테마 적용 오류:', e); }
 };
@@ -288,3 +313,5 @@ optionIcon.addEventListener('click', () => {
 
 // 사이드바 바깥(오버레이) 클릭: 닫기
 sidebarOverlay.addEventListener('click', closeSidebar);
+
+

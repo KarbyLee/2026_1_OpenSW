@@ -58,30 +58,45 @@ renderPreview();
 
 // ===== 상태 =====
 let currentBg = '#ffffff';
+let currentBgOpacity = 1;
 let defaultCellColor = '#ffffff';
+let defaultCellOpacity = 1;
 let otherCellColor = '#969696';
 let highlightColor = '#646464';
 let otherCellOpacity = 0.3;
 let highlightOpacity = 0.13;
+const fontOpacities = { title:1, week:1, sat:1, sun:1 };
+const headOpacities = { week:1, sat:1, sun:1 };
+const headFontOpacities = { week:1, sat:1, sun:1 };
 
 const LIGHT_THEME = {
   bg: '#ffffff',
+  bgOpacity: 1,
   defaultCell: '#ffffff',
+  defaultCellOpacity: 1,
   otherCell: '#969696',
   otherOpacity: 0.3,
   highlight: '#646464',
   highlightOpacity: 0.13,
   fonts: { title:'#222222', week:'#222222', sat:'#1b6ae3', sun:'#e31b20' },
+  fontOpacities: { title:1, week:1, sat:1, sun:1 },
+  headOpacities: { week:1, sat:1, sun:1 },
+  headFontOpacities: { week:1, sat:1, sun:1 },
 };
 
 const DARK_THEME = {
   bg: '#000000',
+  bgOpacity: 1,
   defaultCell: '#1f1f1f',
+  defaultCellOpacity: 1,
   otherCell: '#777777',
   otherOpacity: 0.3,
   highlight: '#ffffff',
   highlightOpacity: 0.16,
   fonts: { title:'#eeeeee', week:'#eeeeee', sat:'#8bb7ff', sun:'#ff8c8c' },
+  fontOpacities: { title:1, week:1, sat:1, sun:1 },
+  headOpacities: { week:1, sat:1, sun:1 },
+  headFontOpacities: { week:1, sat:1, sun:1 },
 };
 
 // ===== 공통 색상 유틸 =====
@@ -124,6 +139,25 @@ const hexToRgba = (hex, opacity) => {
 };
 
 const percentText = (opacity) => `${Math.round(opacity * 100)}%`;
+const alphaColor = (hex, opacity = 1) => opacity >= 1 ? hex : hexToRgba(hex, opacity);
+
+const addOpacityControl = (inputId, sliderId, value, onInput) => {
+  if (document.getElementById(sliderId)) return;
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const row = input.closest('.hex-row');
+  if (!row) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'opacity-row';
+  wrap.innerHTML = `<label class="opacity-label" for="${sliderId}">불투명도 <span class="opacity-badge" id="${sliderId}Badge">${value}%</span></label><input type="range" class="opacity-slider" id="${sliderId}" min="0" max="100" value="${value}">`;
+  row.insertAdjacentElement('afterend', wrap);
+  const slider = document.getElementById(sliderId);
+  slider.addEventListener('input', e => {
+    document.getElementById(`${sliderId}Badge`).textContent = `${e.target.value}%`;
+    markUnsaved();
+    onInput(Number(e.target.value) / 100);
+  });
+};
 
 // ===== 저장 상태 추적 =====
 let isSaved = true; // 처음엔 기본값 상태 = 저장됨으로 간주
@@ -212,14 +246,14 @@ const fontColors = { ...FONT_DEFAULTS };
 const applyFontColors = () => {
   const cal = document.getElementById('previewCal');
   cal.querySelectorAll('.p-num:not(.red):not(.blue):not(.other), .p-memo').forEach(el => {
-    el.style.color = fontColors.week;
+    el.style.color = alphaColor(fontColors.week, fontOpacities.week);
   });
-  cal.querySelectorAll('.p-num.blue').forEach(el => { el.style.color = fontColors.sat; });
-  cal.querySelectorAll('.p-num.red, .p-holiday').forEach(el => { el.style.color = fontColors.sun; });
+  cal.querySelectorAll('.p-num.blue').forEach(el => { el.style.color = alphaColor(fontColors.sat, fontOpacities.sat); });
+  cal.querySelectorAll('.p-num.red, .p-holiday').forEach(el => { el.style.color = alphaColor(fontColors.sun, fontOpacities.sun); });
 };
 
 const applyTitleColor = () => {
-  document.querySelector('.cal-title').style.color = fontColors.title;
+  document.querySelector('.cal-title').style.color = alphaColor(fontColors.title, fontOpacities.title);
 };
 
 const setFontColor = (key, hex) => {
@@ -255,7 +289,7 @@ const fontPickers = {
 const applyBg = (hex) => {
   currentBg = hex;
   const cal = document.getElementById('previewCal');
-  cal.style.background = hex;
+  cal.style.background = alphaColor(hex, currentBgOpacity);
   document.getElementById('dot-bg').style.background = hex;
 
   document.querySelectorAll('.bg-options .deco-btn').forEach(b => {
@@ -265,7 +299,7 @@ const applyBg = (hex) => {
 
 const applyDefaultCellColor = (hex) => {
   defaultCellColor = hex;
-  document.getElementById('previewCal').style.setProperty('--default-cell-color', hex);
+  document.getElementById('previewCal').style.setProperty('--default-cell-color', alphaColor(hex, defaultCellOpacity));
   document.getElementById('dot-defaultCell').style.background = hex;
 };
 
@@ -338,6 +372,45 @@ const highlightPicker = makePicker({
   onChange: (hex) => applyHighlightColor(hex),
 });
 
+const setOpacitySlider = (id, opacity) => {
+  const slider = document.getElementById(id);
+  const badge = document.getElementById(`${id}Badge`);
+  if (!slider) return;
+  const value = Math.round(opacity * 100);
+  slider.value = value;
+  if (badge) badge.textContent = `${value}%`;
+};
+
+const setupOpacityControls = () => {
+  addOpacityControl('bgHexInput', 'bgOpacity', 100, opacity => {
+    currentBgOpacity = opacity;
+    applyBg(currentBg);
+  });
+  addOpacityControl('defaultCellHexInput', 'defaultCellOpacity', 100, opacity => {
+    defaultCellOpacity = opacity;
+    applyDefaultCellColor(defaultCellColor);
+  });
+
+  ['title', 'week', 'sat', 'sun'].forEach(key => {
+    addOpacityControl(`fontHex-${key}`, `fontOpacity-${key}`, 100, opacity => {
+      fontOpacities[key] = opacity;
+      applyFontColors();
+      applyTitleColor();
+    });
+  });
+
+  ['week', 'sat', 'sun'].forEach(key => {
+    addOpacityControl(`headHex-${key}`, `headOpacity-${key}`, 100, opacity => {
+      headOpacities[key] = opacity;
+      applyHeadColors();
+    });
+    addOpacityControl(`headFontHex-${key}`, `headFontOpacity-${key}`, 100, opacity => {
+      headFontOpacities[key] = opacity;
+      applyHeadFontColors();
+    });
+  });
+};
+
 const syncThemePickers = () => {
   bgPicker.syncTo(currentBg);
   defaultCellPicker.syncTo(defaultCellColor);
@@ -347,13 +420,27 @@ const syncThemePickers = () => {
 };
 
 const applyTheme = (theme) => {
+  currentBgOpacity = theme.bgOpacity ?? 1;
+  defaultCellOpacity = theme.defaultCellOpacity ?? 1;
+  setOpacitySlider('bgOpacity', currentBgOpacity);
+  setOpacitySlider('defaultCellOpacity', defaultCellOpacity);
   applyBg(theme.bg);
   applyDefaultCellColor(theme.defaultCell);
   applyOtherColor(theme.otherCell);
   applyOtherOpacity(theme.otherOpacity * 100);
   applyHighlightColor(theme.highlight);
   applyHighlightOpacity(theme.highlightOpacity * 100);
-  ['title', 'week', 'sat', 'sun'].forEach(key => setFontColor(key, theme.fonts[key]));
+  ['title', 'week', 'sat', 'sun'].forEach(key => {
+    fontOpacities[key] = theme.fontOpacities?.[key] ?? 1;
+    setOpacitySlider(`fontOpacity-${key}`, fontOpacities[key]);
+    setFontColor(key, theme.fonts[key]);
+  });
+  ['week', 'sat', 'sun'].forEach(key => {
+    headOpacities[key] = theme.headOpacities?.[key] ?? 1;
+    headFontOpacities[key] = theme.headFontOpacities?.[key] ?? 1;
+    setOpacitySlider(`headOpacity-${key}`, headOpacities[key]);
+    setOpacitySlider(`headFontOpacity-${key}`, headFontOpacities[key]);
+  });
   syncThemePickers();
 };
 
@@ -374,6 +461,8 @@ document.querySelectorAll('.reset-btn').forEach(btn => {
     if (key.startsWith('headfont-')) {
       const sub = key.replace('headfont-', '');
       headFontColors[sub] = def;
+      headFontOpacities[sub] = 1;
+      setOpacitySlider(`headFontOpacity-${sub}`, headFontOpacities[sub]);
       headFontPickers[sub].syncTo(def);
       document.getElementById(`dot-headfont-${sub}`).style.background = def;
       applyHeadFontColors();
@@ -382,6 +471,8 @@ document.querySelectorAll('.reset-btn').forEach(btn => {
     if (key.startsWith('head-')) {
       const sub = key.replace('head-', '');
       headColors[sub] = def;
+      headOpacities[sub] = 1;
+      setOpacitySlider(`headOpacity-${sub}`, headOpacities[sub]);
       headPickers[sub].syncTo(def);
       document.getElementById(`dot-head-${sub}`).style.background = def;
       applyHeadColors();
@@ -389,6 +480,8 @@ document.querySelectorAll('.reset-btn').forEach(btn => {
     }
 
     if (key === 'defaultCell') {
+      defaultCellOpacity = 1;
+      setOpacitySlider('defaultCellOpacity', defaultCellOpacity);
       applyDefaultCellColor(def);
       defaultCellPicker.syncTo(def);
       return;
@@ -408,6 +501,10 @@ document.querySelectorAll('.reset-btn').forEach(btn => {
       return;
     }
 
+    if (fontOpacities[key] !== undefined) {
+      fontOpacities[key] = 1;
+      setOpacitySlider(`fontOpacity-${key}`, fontOpacities[key]);
+    }
     setFontColor(key, def);
   });
 });
@@ -468,9 +565,9 @@ const headColors = { week: '#333333', sat: '#1b6ae3', sun: '#e31b20' };
 const applyHeadColors = () => {
   const cal = document.getElementById('previewCal');
   // 평일 헤더 (sun, sat 제외)
-  cal.style.setProperty('--head-week-color', headColors.week);
-  cal.style.setProperty('--head-sat-color',  headColors.sat);
-  cal.style.setProperty('--head-sun-color',  headColors.sun);
+  cal.style.setProperty('--head-week-color', alphaColor(headColors.week, headOpacities.week));
+  cal.style.setProperty('--head-sat-color',  alphaColor(headColors.sat, headOpacities.sat));
+  cal.style.setProperty('--head-sun-color',  alphaColor(headColors.sun, headOpacities.sun));
 };
 
 const headPickers = {
@@ -509,9 +606,9 @@ const headFontColors = { week: '#ffffff', sat: '#ffffff', sun: '#ffffff' };
 
 const applyHeadFontColors = () => {
   const cal = document.getElementById('previewCal');
-  cal.style.setProperty('--head-font-week-color', headFontColors.week);
-  cal.style.setProperty('--head-font-sat-color',  headFontColors.sat);
-  cal.style.setProperty('--head-font-sun-color',  headFontColors.sun);
+  cal.style.setProperty('--head-font-week-color', alphaColor(headFontColors.week, headFontOpacities.week));
+  cal.style.setProperty('--head-font-sat-color',  alphaColor(headFontColors.sat, headFontOpacities.sat));
+  cal.style.setProperty('--head-font-sun-color',  alphaColor(headFontColors.sun, headFontOpacities.sun));
 };
 
 const headFontPickers = {
@@ -549,14 +646,19 @@ const buildTheme = () => ({
   font:     document.getElementById('fontFamily').value,
   fontSize: sizeInput.value + 'px',
   bg:       currentBg,
+  bgOpacity: currentBgOpacity,
   fontColors:     { ...fontColors },
+  fontOpacities:  { ...fontOpacities },
   defaultCell:    defaultCellColor,
+  defaultCellOpacity,
   otherCell:      otherCellColor,
   otherOpacity,
   highlightColor,
   highlightOpacity,
   headColors:     { ...headColors },
+  headOpacities:  { ...headOpacities },
   headFontColors: { ...headFontColors },
+  headFontOpacities: { ...headFontOpacities },
 });
 
 const showConfirm = (msg) => new Promise(resolve => {
@@ -596,14 +698,19 @@ const setHeadFontColor = (key, hex) => {
 const loadThemeIntoEditor = (theme) => {
   const loaded = {
     bg: theme.bg || LIGHT_THEME.bg,
+    bgOpacity: theme.bgOpacity ?? LIGHT_THEME.bgOpacity,
     defaultCell: theme.defaultCell || LIGHT_THEME.defaultCell,
+    defaultCellOpacity: theme.defaultCellOpacity ?? LIGHT_THEME.defaultCellOpacity,
     otherCell: theme.otherCell || LIGHT_THEME.otherCell,
     otherOpacity: theme.otherOpacity ?? LIGHT_THEME.otherOpacity,
     highlightColor: theme.highlightColor || LIGHT_THEME.highlight,
     highlightOpacity: theme.highlightOpacity ?? LIGHT_THEME.highlightOpacity,
     fontColors: { ...FONT_DEFAULTS, ...(theme.fontColors || {}) },
+    fontOpacities: { ...LIGHT_THEME.fontOpacities, ...(theme.fontOpacities || {}) },
     headColors: theme.headColors || HEAD_DEFAULTS,
+    headOpacities: { ...LIGHT_THEME.headOpacities, ...(theme.headOpacities || {}) },
     headFontColors: theme.headFontColors || HEAD_FONT_DEFAULTS,
+    headFontOpacities: { ...LIGHT_THEME.headFontOpacities, ...(theme.headFontOpacities || {}) },
   };
 
   if (theme.font) {
@@ -617,11 +724,15 @@ const loadThemeIntoEditor = (theme) => {
     applyFontSize(parseInt(theme.fontSize, 10));
   }
 
+  currentBgOpacity = loaded.bgOpacity;
   applyBg(loaded.bg);
   bgPicker.syncTo(loaded.bg);
+  setOpacitySlider('bgOpacity', currentBgOpacity);
 
+  defaultCellOpacity = loaded.defaultCellOpacity;
   applyDefaultCellColor(loaded.defaultCell);
   defaultCellPicker.syncTo(loaded.defaultCell);
+  setOpacitySlider('defaultCellOpacity', defaultCellOpacity);
 
   applyOtherColor(loaded.otherCell);
   otherPicker.syncTo(loaded.otherCell);
@@ -702,6 +813,8 @@ window.onload = () => {
 
   ['title', 'week', 'sat', 'sun'].forEach(key => {
     fontColors[key] = FONT_DEFAULTS[key];
+    fontOpacities[key] = LIGHT_THEME.fontOpacities[key];
+    setOpacitySlider(`fontOpacity-${key}`, fontOpacities[key]);
     fontPickers[key].syncTo(FONT_DEFAULTS[key]);
     document.getElementById(`dot-${key}`).style.background = FONT_DEFAULTS[key];
   });
@@ -710,6 +823,8 @@ window.onload = () => {
 
   ['week', 'sat', 'sun'].forEach(key => {
     headColors[key] = HEAD_DEFAULTS[key];
+    headOpacities[key] = LIGHT_THEME.headOpacities[key];
+    setOpacitySlider(`headOpacity-${key}`, headOpacities[key]);
     headPickers[key].syncTo(HEAD_DEFAULTS[key]);
     document.getElementById(`dot-head-${key}`).style.background = HEAD_DEFAULTS[key];
   });
@@ -717,6 +832,8 @@ window.onload = () => {
 
   ['week', 'sat', 'sun'].forEach(key => {
     headFontColors[key] = HEAD_FONT_DEFAULTS[key];
+    headFontOpacities[key] = LIGHT_THEME.headFontOpacities[key];
+    setOpacitySlider(`headFontOpacity-${key}`, headFontOpacities[key]);
     headFontPickers[key].syncTo(HEAD_FONT_DEFAULTS[key]);
     document.getElementById(`dot-headfont-${key}`).style.background = HEAD_FONT_DEFAULTS[key];
   });
