@@ -178,7 +178,76 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => {
   if (e.target === document.getElementById('modalOverlay')) closeModal();
 });
 
-window.onload = () => makeCalendar(date);
+// ===== 테마 적용 =====
+const applyTheme = () => {
+  const raw = localStorage.getItem('calendarTheme');
+  if (!raw) return;
+  try {
+    const t = JSON.parse(raw);
+    const root = document.querySelector('.rap');
+    if (!root) return;
+
+    if (t.font) {
+      root.style.setProperty('--cal-font', t.font);
+      root.style.fontFamily = t.font; // 직접도 적용
+    }
+    if (t.fontSize) {
+      root.style.setProperty('--cal-font-size', t.fontSize);
+      root.style.fontSize = t.fontSize;
+    }
+    if (t.bg) root.style.setProperty('--cal-bg', t.bg);
+
+    if (t.fontColors) {
+      root.style.setProperty('--font-week-color', t.fontColors.week || '#222');
+      root.style.setProperty('--font-sat-color',  t.fontColors.sat  || '#1b6ae3');
+      root.style.setProperty('--font-sun-color',  t.fontColors.sun  || '#e31b20');
+    }
+
+    if (t.defaultCell) root.style.setProperty('--cell-bg', t.defaultCell);
+
+    if (t.otherCell && t.otherOpacity !== undefined) {
+      const r = parseInt(t.otherCell.slice(1,3),16);
+      const g = parseInt(t.otherCell.slice(3,5),16);
+      const b = parseInt(t.otherCell.slice(5,7),16);
+      root.style.setProperty('--other-overlay-color', `rgba(${r},${g},${b},${t.otherOpacity})`);
+    }
+
+    if (t.highlightColor && t.highlightOpacity !== undefined) {
+      const r = parseInt(t.highlightColor.slice(1,3),16);
+      const g = parseInt(t.highlightColor.slice(3,5),16);
+      const b = parseInt(t.highlightColor.slice(5,7),16);
+      const op  = t.highlightOpacity;
+      const opB = Math.min(1, op * 2.5);
+      root.style.setProperty('--today-bg',           `rgba(${r},${g},${b},${op})`);
+      root.style.setProperty('--today-bg-hover',     `rgba(${r},${g},${b},${Math.min(1,op+0.05)})`);
+      root.style.setProperty('--today-border',       `rgba(${r},${g},${b},${opB})`);
+      root.style.setProperty('--today-border-hover', `rgba(${r},${g},${b},${Math.min(1,opB+0.1)})`);
+      root.style.setProperty('--today-num-bg',       `rgba(${r},${g},${b},${Math.min(1,op*2)})`);
+      root.style.setProperty('--today-num-color',    t.bg && isHexDark(t.bg) ? '#eee' : '#222');
+    }
+
+    if (t.headColors) {
+      root.style.setProperty('--head-week-bg',  t.headColors.week || '#333');
+      root.style.setProperty('--head-sat-bg',   t.headColors.sat  || '#1b6ae3');
+      root.style.setProperty('--head-sun-bg',   t.headColors.sun  || '#e31b20');
+    }
+
+    if (t.headFontColors) {
+      root.style.setProperty('--head-week-font', t.headFontColors.week || '#fff');
+      root.style.setProperty('--head-sat-font',  t.headFontColors.sat  || '#fff');
+      root.style.setProperty('--head-sun-font',  t.headFontColors.sun  || '#fff');
+    }
+  } catch(e) { console.error('테마 적용 오류:', e); }
+};
+
+const isHexDark = (hex) => {
+  const r=parseInt(hex.slice(1,3),16),
+        g=parseInt(hex.slice(3,5),16),
+        b=parseInt(hex.slice(5,7),16);
+  return (r*0.299+g*0.587+b*0.114) < 128;
+};
+
+window.onload = () => { applyTheme(); makeCalendar(date); };
 
 document.querySelector('.prevDay').onclick = () => {
   date.setMonth(date.getMonth() - 1);

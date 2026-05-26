@@ -1,15 +1,22 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
 
+/* ===== 커스텀 폰트 ===== */
+@font-face { font-family:'GraceSerif';    src:url('Fonts/GraceSerif.ttf') format('truetype'); }
+@font-face { font-family:'MonaS12TextKR'; src:url('Fonts/MonaS12TextKR.ttf') format('truetype'); }
+@font-face { font-family:'NanumMyeongjo';src:url('Fonts/NanumMyeongjo.ttf') format('truetype'); }
+
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
 * {
   margin: 0;
   padding: 0;
   list-style: none;
   box-sizing: border-box;
-  font-family: 'Pretendard', sans-serif;
 }
 
 body {
   background-color: transparent;
+  font-family: 'Pretendard', sans-serif;
 }
 
 /* ===== 옵션 아이콘 (전체 화면 왼쪽 상단 고정) ===== */
@@ -29,12 +36,20 @@ body {
 
 /* ===== 캘린더 (1.5배 확대) ===== */
 .rap {
-  max-width: 1025px;       /* 820 * 1.5 */
-  padding: 1.75rem;         /* 1.4 * 1.5 */
+  max-width: 1025px;
+  padding: 1.75rem;
   margin: 0 auto;
-  background-color: #fff;
+  background-color: var(--cal-bg, #fff);
   border-radius: 19px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  font-family: var(--cal-font, 'Pretendard', sans-serif);
+  font-size: var(--cal-font-size, 1rem);
+  color: var(--font-week-color, #222);
+}
+
+/* 캘린더 내부 모든 요소 폰트 상속 */
+.rap, .rap * {
+  font-family: inherit;
 }
 
 .header {
@@ -72,8 +87,8 @@ body {
 
 /* 요일 헤더 공통 - 검은색 */
 .dateHead div {
-  background: #333;
-  color: #fff;
+  background: var(--head-week-bg, #333);
+  color: var(--head-week-font, #fff);
   text-align: center;
   border-radius: 6px;
   padding: .75rem;          /* .6 * 1.5 */
@@ -81,15 +96,16 @@ body {
   font-size: 1rem;
 }
 
-.dateHead div.sun { background: #e31b20; }
-.dateHead div.sat { background: #1b6ae3; }
+.dateHead div.sun { background: var(--head-sun-bg, #e31b20); color: var(--head-sun-font, #fff); }
+.dateHead div.sat { background: var(--head-sat-bg, #1b6ae3); color: var(--head-sat-font, #fff); }
 
 /* 날짜 셀 공통 */
 .dateBoard .day-cell {
-  min-height: 6.25rem;      /* 5 * 1.5 */
-  padding: 1rem;         /* .8 * 1.5 */
+  min-height: 6.25rem;
+  padding: 1rem;
   border-radius: 10px;
   border: 1px solid #f0f0f0;
+  background: var(--cell-bg, transparent);
   cursor: pointer;
   transition: 0.2s;
   display: flex;
@@ -112,8 +128,8 @@ body {
 
 .day-num {
   font-weight: 700;
-  font-size: 1.1rem;       /* .95 * 1.15 */
-  color: #222;
+  font-size: 1.1rem;
+  color: var(--font-week-color, #222);
   flex-shrink: 0;
 }
 
@@ -121,7 +137,7 @@ body {
 .holiday-name {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #e31b20;
+  color: var(--font-sun-color, #e31b20);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -137,11 +153,11 @@ body {
 }
 
 /* 토요일 */
-.day-cell.saturday .day-num { color: #1b6ae3; }
+.day-cell.saturday .day-num { color: var(--font-sat-color, #1b6ae3); }
 .day-cell.saturday:hover { background-color: #f0f5ff; border-color: #1b6ae3; }
 
 /* 일요일 & 공휴일 */
-.day-cell.sunday .day-num { color: #e31b20; }
+.day-cell.sunday .day-num { color: var(--font-sun-color, #e31b20); }
 .day-cell.sunday:hover { background-color: #fff0f0; border-color: #e31b20; }
 
 /* 메모 미리보기 */
@@ -158,10 +174,19 @@ body {
 
 /* 이전/다음 달 빈 칸 */
 .noColor {
-  background: #f9f9f9;
+  background: var(--other-cell-bg, #f9f9f9);
   min-height: 6.25rem;
   border-radius: 10px;
   border: 1px solid #f0f0f0;
+  position: relative;
+  overflow: hidden;
+}
+.noColor::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--other-overlay-color, transparent);
+  pointer-events: none;
 }
 
 /* ===== 모달 ===== */
@@ -224,7 +249,7 @@ body {
   border-radius: 8px;
   padding: .8rem;
   font-size: 0.95rem;
-  font-family: 'Pretendard', sans-serif;
+  font-family: inherit;
   resize: none;
   outline: none;
   transition: border-color 0.2s;
@@ -244,7 +269,7 @@ body {
   border: none;
   border-radius: 6px;
   font-size: 0.9rem;
-  font-family: 'Pretendard', sans-serif;
+  font-family: inherit;
   font-weight: 600;
   cursor: pointer;
   transition: 0.15s;
@@ -332,17 +357,17 @@ body {
 
 /* 평일 오늘: 회색 계열 */
 .day-cell.today {
-  background-color: #f5f5f5;
-  border: 2.5px solid #bbb;
+  background-color: var(--today-bg, #f5f5f5);
+  border: 2.5px solid var(--today-border, #bbb);
 }
 .day-cell.today:hover {
-  background-color: #eeeeee;
-  border-color: #999;
+  background-color: var(--today-bg-hover, #eeeeee);
+  border-color: var(--today-border-hover, #999);
 }
 .day-num.today-num {
   font-weight: 900;
-  background-color: #d6d6d6;
-  color: #222;
+  background-color: var(--today-num-bg, #d6d6d6);
+  color: var(--today-num-color, #222);
   border-radius: 5px;
   padding: 1px 5px;
   display: inline-block;

@@ -19,7 +19,7 @@
       <div class="cal" id="previewCal">
         <div class="cal-header">
           <div class="cal-arrow">‹</div>
-          <h2 class="cal-title">NNNN년 N월 N일</h2>
+          <h2 class="cal-title">NNNN년 N월</h2>
           <div class="cal-arrow">›</div>
         </div>
         <div class="cal-grid cal-head">
@@ -139,6 +139,177 @@
                     <div class="color-preview-dot" id="fontDot-sun"></div>
                   </div>
                   <button class="reset-btn" data-key="sun" data-default="e31b20">초기화</button>
+                </div>
+              </div>
+            </div>
+            <!-- 요일칸 폰트 색상 -->
+            <p class="sub-section-title">요일칸 폰트 색상</p>
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="headFontPanel-week">
+                <span class="toggle-dot" id="dot-headfont-week" style="background:#ffffff"></span>
+                평일
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="headFontPanel-week">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="headFontRgbBox-week">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="headFontRgbCursor-week"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="headFontHue-week" min="0" max="360" value="0">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="headFontHex-week" maxlength="6" placeholder="ffffff">
+                    <div class="color-preview-dot" id="headFontDot-week"></div>
+                  </div>
+                  <button class="reset-btn" data-key="headfont-week" data-default="ffffff">초기화</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="headFontPanel-sat">
+                <span class="toggle-dot" id="dot-headfont-sat" style="background:#ffffff"></span>
+                토요일
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="headFontPanel-sat">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="headFontRgbBox-sat">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="headFontRgbCursor-sat"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="headFontHue-sat" min="0" max="360" value="0">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="headFontHex-sat" maxlength="6" placeholder="ffffff">
+                    <div class="color-preview-dot" id="headFontDot-sat"></div>
+                  </div>
+                  <button class="reset-btn" data-key="headfont-sat" data-default="ffffff">초기화</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="headFontPanel-sun">
+                <span class="toggle-dot" id="dot-headfont-sun" style="background:#ffffff"></span>
+                일요일
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="headFontPanel-sun">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="headFontRgbBox-sun">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="headFontRgbCursor-sun"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="headFontHue-sun" min="0" max="360" value="0">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="headFontHex-sun" maxlength="6" placeholder="ffffff">
+                    <div class="color-preview-dot" id="headFontDot-sun"></div>
+                  </div>
+                  <button class="reset-btn" data-key="headfont-sun" data-default="ffffff">초기화</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="deco-divider"></div>
+
+        <!-- 요일 칸 섹션 -->
+        <section class="deco-section">
+          <h3 class="deco-section-title">요일 칸</h3>
+          <div class="deco-divider"></div>
+
+          <div class="deco-row">
+            <!-- 평일 -->
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="headPanel-week">
+                <span class="toggle-dot" id="dot-head-week" style="background:#333333"></span>
+                평일
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="headPanel-week">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="headRgbBox-week">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="headRgbCursor-week"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="headHue-week" min="0" max="360" value="0">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="headHex-week" maxlength="6" placeholder="333333">
+                    <div class="color-preview-dot" id="headDot-week"></div>
+                  </div>
+                  <button class="reset-btn" data-key="head-week" data-default="333333">초기화</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 토요일 -->
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="headPanel-sat">
+                <span class="toggle-dot" id="dot-head-sat" style="background:#1b6ae3"></span>
+                토요일
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="headPanel-sat">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="headRgbBox-sat">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="headRgbCursor-sat"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="headHue-sat" min="0" max="360" value="210">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="headHex-sat" maxlength="6" placeholder="1b6ae3">
+                    <div class="color-preview-dot" id="headDot-sat"></div>
+                  </div>
+                  <button class="reset-btn" data-key="head-sat" data-default="1b6ae3">초기화</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 일요일 -->
+            <div class="toggle-group">
+              <button class="toggle-header" data-target="headPanel-sun">
+                <span class="toggle-dot" id="dot-head-sun" style="background:#e31b20"></span>
+                일요일
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="toggle-panel" id="headPanel-sun">
+                <div class="color-picker-wrap">
+                  <div class="rgb-box-wrap">
+                    <div class="rgb-gradient-box" id="headRgbBox-sun">
+                      <div class="rgb-white-overlay"></div>
+                      <div class="rgb-black-overlay"></div>
+                      <div class="rgb-cursor" id="headRgbCursor-sun"></div>
+                    </div>
+                    <input type="range" class="hue-slider" id="headHue-sun" min="0" max="360" value="1">
+                  </div>
+                  <div class="hex-row">
+                    <span class="hex-label">#</span>
+                    <input type="text" class="hex-input" id="headHex-sun" maxlength="6" placeholder="e31b20">
+                    <div class="color-preview-dot" id="headDot-sun"></div>
+                  </div>
+                  <button class="reset-btn" data-key="head-sun" data-default="e31b20">초기화</button>
                 </div>
               </div>
             </div>
@@ -283,6 +454,17 @@
         <button class="deco-exit" id="btnDecoExit">나가기</button>
       </div>
     </aside>
+  </div>
+
+  <!-- 적용 확인 모달 -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <p class="confirm-msg" id="confirmMsg">적용하시겠습니까?</p>
+      <div class="confirm-btns" id="confirmBtns">
+        <button class="confirm-yes" id="confirmYes">예</button>
+        <button class="confirm-no"  id="confirmNo">아니요</button>
+      </div>
+    </div>
   </div>
 
   <script src="decorate.js"></script>

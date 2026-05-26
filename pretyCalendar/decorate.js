@@ -125,8 +125,15 @@ const hexToRgba = (hex, opacity) => {
 
 const percentText = (opacity) => `${Math.round(opacity * 100)}%`;
 
+// ===== 저장 상태 추적 =====
+let isSaved = true; // 처음엔 기본값 상태 = 저장됨으로 간주
+
+const markUnsaved = () => { isSaved = false; };
+
 // ===== 피커 팩토리 =====
 const makePicker = ({ boxId, cursorId, hueId, hexInputId, dotId, onChange }) => {
+  const _onChange = (hex) => { markUnsaved(); onChange(hex); };
+  onChange = _onChange;
   let hue = 0, sat = 1, bri = 1, dragging = false;
 
   const box = document.getElementById(boxId);
@@ -356,6 +363,22 @@ document.querySelectorAll('.reset-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const key = btn.dataset.key;
     const def = '#' + btn.dataset.default;
+    if (key.startsWith('headfont-')) {
+      const sub = key.replace('headfont-', '');
+      headFontColors[sub] = def;
+      headFontPickers[sub].syncTo(def);
+      document.getElementById(`dot-headfont-${sub}`).style.background = def;
+      applyHeadFontColors();
+      return;
+    }
+    if (key.startsWith('head-')) {
+      const sub = key.replace('head-', '');
+      headColors[sub] = def;
+      headPickers[sub].syncTo(def);
+      document.getElementById(`dot-head-${sub}`).style.background = def;
+      applyHeadColors();
+      return;
+    }
 
     if (key === 'defaultCell') {
       applyDefaultCellColor(def);
@@ -384,10 +407,15 @@ document.querySelectorAll('.reset-btn').forEach(btn => {
 document.querySelectorAll('.toggle-header').forEach(header => {
   header.addEventListener('click', () => {
     const panel = document.getElementById(header.dataset.target);
+    if (!panel) return;
     const isOpen = panel.classList.contains('open');
 
-    document.querySelectorAll('.toggle-panel').forEach(p => p.classList.remove('open'));
-    document.querySelectorAll('.toggle-header').forEach(h => h.classList.remove('open'));
+    // 같은 toggle-group 부모의 형제 패널들만 닫기 (섹션 독립)
+    const parentSection = header.closest('section, .deco-row');
+    if (parentSection) {
+      parentSection.querySelectorAll('.toggle-panel').forEach(p => p.classList.remove('open'));
+      parentSection.querySelectorAll('.toggle-header').forEach(h => h.classList.remove('open'));
+    }
 
     if (!isOpen) {
       panel.classList.add('open');
@@ -398,6 +426,7 @@ document.querySelectorAll('.toggle-header').forEach(header => {
 
 // ===== 폰트 종류 =====
 document.getElementById('fontFamily').addEventListener('change', (e) => {
+  markUnsaved();
   const cal = document.getElementById('previewCal');
   cal.style.fontFamily = e.target.value;
   cal.querySelectorAll('*').forEach(el => el.style.fontFamily = 'inherit');
@@ -414,8 +443,8 @@ const applyFontSize = (val) => {
   document.getElementById('previewCal').style.fontSize = n + 'px';
 };
 
-sizeInput.addEventListener('input', (e) => applyFontSize(e.target.value));
-sizeInput.addEventListener('change', (e) => applyFontSize(e.target.value));
+sizeInput.addEventListener('input', (e) => { markUnsaved(); applyFontSize(e.target.value); });
+sizeInput.addEventListener('change', (e) => { markUnsaved(); applyFontSize(e.target.value); });
 
 document.getElementById('sizeUp').addEventListener('click', () => {
   applyFontSize(parseInt(sizeInput.value, 10) + 1);
@@ -424,77 +453,215 @@ document.getElementById('sizeDown').addEventListener('click', () => {
   applyFontSize(parseInt(sizeInput.value, 10) - 1);
 });
 
+// ===== 요일 헤더 색상 =====
+const HEAD_DEFAULTS = { week: '#333333', sat: '#1b6ae3', sun: '#e31b20' };
+const headColors = { week: '#333333', sat: '#1b6ae3', sun: '#e31b20' };
+
+const applyHeadColors = () => {
+  const cal = document.getElementById('previewCal');
+  // 평일 헤더 (sun, sat 제외)
+  cal.style.setProperty('--head-week-color', headColors.week);
+  cal.style.setProperty('--head-sat-color',  headColors.sat);
+  cal.style.setProperty('--head-sun-color',  headColors.sun);
+};
+
+const headPickers = {
+  week: makePicker({
+    boxId: 'headRgbBox-week', cursorId: 'headRgbCursor-week',
+    hueId: 'headHue-week', hexInputId: 'headHex-week', dotId: 'headDot-week',
+    onChange: (hex) => {
+      headColors.week = hex;
+      document.getElementById('dot-head-week').style.background = hex;
+      applyHeadColors();
+    },
+  }),
+  sat: makePicker({
+    boxId: 'headRgbBox-sat', cursorId: 'headRgbCursor-sat',
+    hueId: 'headHue-sat', hexInputId: 'headHex-sat', dotId: 'headDot-sat',
+    onChange: (hex) => {
+      headColors.sat = hex;
+      document.getElementById('dot-head-sat').style.background = hex;
+      applyHeadColors();
+    },
+  }),
+  sun: makePicker({
+    boxId: 'headRgbBox-sun', cursorId: 'headRgbCursor-sun',
+    hueId: 'headHue-sun', hexInputId: 'headHex-sun', dotId: 'headDot-sun',
+    onChange: (hex) => {
+      headColors.sun = hex;
+      document.getElementById('dot-head-sun').style.background = hex;
+      applyHeadColors();
+    },
+  }),
+};
+
+// ===== 요일칸 폰트 색상 =====
+const HEAD_FONT_DEFAULTS = { week: '#ffffff', sat: '#ffffff', sun: '#ffffff' };
+const headFontColors = { week: '#ffffff', sat: '#ffffff', sun: '#ffffff' };
+
+const applyHeadFontColors = () => {
+  const cal = document.getElementById('previewCal');
+  cal.style.setProperty('--head-font-week-color', headFontColors.week);
+  cal.style.setProperty('--head-font-sat-color',  headFontColors.sat);
+  cal.style.setProperty('--head-font-sun-color',  headFontColors.sun);
+};
+
+const headFontPickers = {
+  week: makePicker({
+    boxId: 'headFontRgbBox-week', cursorId: 'headFontRgbCursor-week',
+    hueId: 'headFontHue-week', hexInputId: 'headFontHex-week', dotId: 'headFontDot-week',
+    onChange: (hex) => {
+      headFontColors.week = hex;
+      document.getElementById('dot-headfont-week').style.background = hex;
+      applyHeadFontColors();
+    },
+  }),
+  sat: makePicker({
+    boxId: 'headFontRgbBox-sat', cursorId: 'headFontRgbCursor-sat',
+    hueId: 'headFontHue-sat', hexInputId: 'headFontHex-sat', dotId: 'headFontDot-sat',
+    onChange: (hex) => {
+      headFontColors.sat = hex;
+      document.getElementById('dot-headfont-sat').style.background = hex;
+      applyHeadFontColors();
+    },
+  }),
+  sun: makePicker({
+    boxId: 'headFontRgbBox-sun', cursorId: 'headFontRgbCursor-sun',
+    hueId: 'headFontHue-sun', hexInputId: 'headFontHex-sun', dotId: 'headFontDot-sun',
+    onChange: (hex) => {
+      headFontColors.sun = hex;
+      document.getElementById('dot-headfont-sun').style.background = hex;
+      applyHeadFontColors();
+    },
+  }),
+};
+
 // ===== 저장 =====
-document.getElementById('btnDecoSave').addEventListener('click', () => {
-  localStorage.setItem('decoFont', document.getElementById('fontFamily').value);
-  localStorage.setItem('decoFontSize', sizeInput.value + 'px');
-  localStorage.setItem('decoBg', currentBg);
-  localStorage.setItem('decoFontColor-week', fontColors.week);
-  localStorage.setItem('decoFontColor-sat', fontColors.sat);
-  localStorage.setItem('decoFontColor-sun', fontColors.sun);
-  localStorage.setItem('decoDefaultCellColor', defaultCellColor);
-  localStorage.setItem('decoOtherColor', otherCellColor);
-  localStorage.setItem('decoOtherOpacity', String(otherCellOpacity));
-  localStorage.setItem('decoHighlightColor', highlightColor);
-  localStorage.setItem('decoHighlightOpacity', String(highlightOpacity));
-  alert('설정이 저장되었습니다!');
+// 현재 상태를 localStorage에 저장하는 함수
+const saveTheme = () => {
+  const theme = buildTheme();
+  localStorage.setItem('calendarThemeSaved', JSON.stringify(theme));
+  isSaved = true;
+};
+
+const buildTheme = () => ({
+  font:     document.getElementById('fontFamily').value,
+  fontSize: sizeInput.value + 'px',
+  bg:       currentBg,
+  fontColors:     { ...fontColors },
+  defaultCell:    defaultCellColor,
+  otherCell:      otherCellColor,
+  otherOpacity,
+  highlightColor,
+  highlightOpacity,
+  headColors:     { ...headColors },
+  headFontColors: { ...headFontColors },
 });
 
-// 적용 버튼은 아직 기능 없음
+document.getElementById('btnDecoSave').addEventListener('click', async () => {
+  const yes = await showConfirm('저장하시겠습니까?');
+  if (!yes) return;
+  saveTheme();
+  await showAlert('저장되었습니다');
+});
+
+// ===== 적용 버튼 =====
+const confirmOverlay = document.getElementById('confirmOverlay');
+const confirmMsg     = document.getElementById('confirmMsg');
+const confirmBtns    = document.getElementById('confirmBtns');
+
+const showConfirm = (msg) => new Promise(resolve => {
+  confirmMsg.textContent = msg;
+  confirmBtns.style.display = 'flex';
+  confirmOverlay.classList.add('active');
+  const yes = document.getElementById('confirmYes');
+  const no  = document.getElementById('confirmNo');
+  const cleanup = (val) => {
+    confirmOverlay.classList.remove('active');
+    yes.replaceWith(yes.cloneNode(true));
+    no.replaceWith(no.cloneNode(true));
+    resolve(val);
+  };
+  document.getElementById('confirmYes').addEventListener('click', () => cleanup(true),  { once: true });
+  document.getElementById('confirmNo' ).addEventListener('click', () => cleanup(false), { once: true });
+});
+
+const showAlert = (msg) => new Promise(resolve => {
+  confirmMsg.textContent = msg;
+  confirmBtns.style.display = 'none';
+  confirmOverlay.classList.add('active');
+  setTimeout(() => {
+    confirmOverlay.classList.remove('active');
+    confirmBtns.style.display = 'flex';
+    resolve();
+  }, 1200);
+});
+
+document.getElementById('btnDecoApply').addEventListener('click', async () => {
+  let yes;
+  if (!isSaved) {
+    yes = await showConfirm('저장 후 적용하시겠습니까?');
+    if (!yes) return;
+    saveTheme();
+  } else {
+    yes = await showConfirm('적용하시겠습니까?');
+    if (!yes) return;
+  }
+
+  localStorage.setItem('calendarTheme', JSON.stringify(buildTheme()));
+  await showAlert('적용되었습니다');
+  location.href = 'index.html';
+});
 
 // ===== 나가기 =====
 document.getElementById('btnDecoExit').addEventListener('click', () => {
   location.href = 'index.html';
 });
 
-// ===== 불러오기 =====
+// ===== 초기화 (항상 기본값으로 시작) =====
 window.onload = () => {
+  isSaved = true; // 기본값 상태 = 저장 필요 없음
   bgPicker.init();
   defaultCellPicker.init();
   otherPicker.init();
   highlightPicker.init();
   Object.values(fontPickers).forEach(p => p.init());
+  Object.values(headPickers).forEach(p => p.init());
+  Object.values(headFontPickers).forEach(p => p.init());
 
-  const savedFont = localStorage.getItem('decoFont');
-  const savedFontSize = localStorage.getItem('decoFontSize');
-  const savedBg = localStorage.getItem('decoBg') || LIGHT_THEME.bg;
-  const savedDefaultCell = localStorage.getItem('decoDefaultCellColor') || LIGHT_THEME.defaultCell;
-  const savedOther = localStorage.getItem('decoOtherColor') || LIGHT_THEME.otherCell;
-  const savedOtherOpacity = Number(localStorage.getItem('decoOtherOpacity') || LIGHT_THEME.otherOpacity) * 100;
-  const savedHighlight = localStorage.getItem('decoHighlightColor') || LIGHT_THEME.highlight;
-  const savedHighlightOpacity = Number(localStorage.getItem('decoHighlightOpacity') || LIGHT_THEME.highlightOpacity) * 100;
+  // 기본값으로 피커 초기화
+  applyBg(LIGHT_THEME.bg);
+  bgPicker.syncTo(LIGHT_THEME.bg);
 
-  if (savedFont) {
-    document.getElementById('fontFamily').value = savedFont;
-    document.getElementById('previewCal').style.fontFamily = savedFont;
-  }
+  applyDefaultCellColor(LIGHT_THEME.defaultCell);
+  defaultCellPicker.syncTo(LIGHT_THEME.defaultCell);
 
-  if (savedFontSize) {
-    const n = parseInt(savedFontSize, 10);
-    sizeInput.value = n;
-    document.getElementById('previewCal').style.fontSize = savedFontSize;
-  }
+  applyOtherColor(LIGHT_THEME.otherCell);
+  otherPicker.syncTo(LIGHT_THEME.otherCell);
+  applyOtherOpacity(LIGHT_THEME.otherOpacity * 100);
 
-  applyBg(savedBg);
-  bgPicker.syncTo(savedBg);
+  applyHighlightColor(LIGHT_THEME.highlight);
+  highlightPicker.syncTo(LIGHT_THEME.highlight);
+  applyHighlightOpacity(LIGHT_THEME.highlightOpacity * 100);
 
   ['week', 'sat', 'sun'].forEach(key => {
-    const saved = localStorage.getItem(`decoFontColor-${key}`);
-    const hex = saved || FONT_DEFAULTS[key];
-    fontColors[key] = hex;
-    fontPickers[key].syncTo(hex);
-    document.getElementById(`dot-${key}`).style.background = hex;
+    fontColors[key] = FONT_DEFAULTS[key];
+    fontPickers[key].syncTo(FONT_DEFAULTS[key]);
+    document.getElementById(`dot-${key}`).style.background = FONT_DEFAULTS[key];
   });
   applyFontColors();
 
-  applyDefaultCellColor(savedDefaultCell);
-  defaultCellPicker.syncTo(savedDefaultCell);
+  ['week', 'sat', 'sun'].forEach(key => {
+    headColors[key] = HEAD_DEFAULTS[key];
+    headPickers[key].syncTo(HEAD_DEFAULTS[key]);
+    document.getElementById(`dot-head-${key}`).style.background = HEAD_DEFAULTS[key];
+  });
+  applyHeadColors();
 
-  applyOtherColor(savedOther);
-  otherPicker.syncTo(savedOther);
-  applyOtherOpacity(savedOtherOpacity);
-
-  applyHighlightColor(savedHighlight);
-  highlightPicker.syncTo(savedHighlight);
-  applyHighlightOpacity(savedHighlightOpacity);
+  ['week', 'sat', 'sun'].forEach(key => {
+    headFontColors[key] = HEAD_FONT_DEFAULTS[key];
+    headFontPickers[key].syncTo(HEAD_FONT_DEFAULTS[key]);
+    document.getElementById(`dot-headfont-${key}`).style.background = HEAD_FONT_DEFAULTS[key];
+  });
+  applyHeadFontColors();
 };
