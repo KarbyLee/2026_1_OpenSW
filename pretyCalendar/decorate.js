@@ -741,10 +741,15 @@ const loadThemeIntoEditor = (theme) => {
   applyHighlightColor(loaded.highlightColor);
   highlightPicker.syncTo(loaded.highlightColor);
   applyHighlightOpacity(loaded.highlightOpacity * 100);
-
   ['title', 'week', 'sat', 'sun'].forEach(key => {
+    fontOpacities[key] = loaded.fontOpacities[key] ?? 1;
+    setOpacitySlider(`fontOpacity-${key}`, fontOpacities[key]);
     setFontColor(key, loaded.fontColors[key] || FONT_DEFAULTS[key]);
     if (key !== 'title') {
+      headOpacities[key] = loaded.headOpacities[key] ?? 1;
+      headFontOpacities[key] = loaded.headFontOpacities[key] ?? 1;
+      setOpacitySlider(`headOpacity-${key}`, headOpacities[key]);
+      setOpacitySlider(`headFontOpacity-${key}`, headFontOpacities[key]);
       setHeadColor(key, loaded.headColors[key] || HEAD_DEFAULTS[key]);
       setHeadFontColor(key, loaded.headFontColors[key] || HEAD_FONT_DEFAULTS[key]);
     }
@@ -787,7 +792,8 @@ document.getElementById('btnDecoExit').addEventListener('click', () => {
 
 // ===== 초기화 (항상 기본값으로 시작) =====
 window.onload = () => {
-  isSaved = true; // 기본값 상태 = 저장 필요 없음
+  isSaved = true;
+  setupOpacityControls();
   bgPicker.init();
   defaultCellPicker.init();
   otherPicker.init();

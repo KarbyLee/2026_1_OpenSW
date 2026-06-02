@@ -1,0 +1,19 @@
+{
+  "name": "pretycalendar",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^...",
+    "electron-builder": "^..."
+  },
+  "build": {
+    "appId": "com.pretycalendar.app",
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
