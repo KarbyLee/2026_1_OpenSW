@@ -270,6 +270,45 @@ const applyTheme = () => {
       root.style.setProperty('--head-sat-font',  hexToRgba(t.headFontColors.sat  || '#ffffff', t.headFontOpacities?.sat ?? 1));
       root.style.setProperty('--head-sun-font',  hexToRgba(t.headFontColors.sun  || '#ffffff', t.headFontOpacities?.sun ?? 1));
     }
+    if (t.bgImage && t.bgImage.dataUrl) {
+      const rap = document.querySelector('.rap');
+      if (rap) {
+        let bgLayer = document.getElementById('calBgImageLayer');
+        if (!bgLayer) {
+          bgLayer = document.createElement('div');
+          bgLayer.id = 'calBgImageLayer';
+          bgLayer.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;border-radius:19px;';
+          bgLayer.innerHTML = '<img id="calBgImg" style="position:absolute;transform-origin:top left;" src="" alt="">';
+          rap.style.position = 'relative';
+          rap.insertBefore(bgLayer, rap.firstChild);
+          // 캘린더 내부 요소들이 이미지 위에 오도록
+          rap.querySelectorAll('.header, .dateHead, .dateBoard').forEach(el => {
+            el.style.position = 'relative';
+            el.style.zIndex   = '1';
+          });
+        }
+
+        const img = bgLayer.querySelector('img');
+        const { dataUrl, widthPct=100, heightPct=100, xPct=50, yPct=50, opacity=1 } = t.bgImage;
+        img.src = dataUrl;
+        img.onload = () => {
+          const rapW = rap.offsetWidth, rapH = rap.offsetHeight;
+          const imgW = rapW * (widthPct / 100);
+          const imgH = rapH * (heightPct / 100);
+          const posX = (rapW - imgW) * (xPct / 100);
+          const posY = (rapH - imgH) * (yPct / 100);
+          img.style.width   = imgW + 'px';
+          img.style.height  = imgH + 'px';
+          img.style.left    = posX + 'px';
+          img.style.top     = posY + 'px';
+          img.style.opacity = opacity;
+        };
+        bgLayer.style.display = 'block';
+      }
+    } else {
+      const bgLayer = document.getElementById('calBgImageLayer');
+      if (bgLayer) bgLayer.style.display = 'none';
+    }
   } catch(e) { console.error('테마 적용 오류:', e); }
 };
 
@@ -313,5 +352,3 @@ optionIcon.addEventListener('click', () => {
 
 // 사이드바 바깥(오버레이) 클릭: 닫기
 sidebarOverlay.addEventListener('click', closeSidebar);
-
-

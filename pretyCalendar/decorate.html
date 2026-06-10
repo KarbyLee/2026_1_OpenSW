@@ -471,6 +471,103 @@
           </div>
         </section>
 
+        <!-- 배경 이미지 섹션 -->
+        <section class="deco-section" id="bgImageSection">
+          <h3 class="deco-section-title">배경 이미지</h3>
+          <div class="deco-divider"></div>
+
+          <!-- 이미지 없을 때: 업로드 버튼 -->
+          <div id="bgImageUploadArea">
+            <label class="bg-img-upload-btn" for="bgImageInput">
+              <span class="bg-img-upload-icon">🖼️</span>
+              <span>이미지 삽입</span>
+            </label>
+            <input type="file" id="bgImageInput" accept="image/*" style="display:none">
+            <p class="bg-img-hint">배경 레이어에 이미지를 추가합니다</p>
+          </div>
+
+          <!-- 이미지 있을 때: 컨트롤 패널 -->
+          <div id="bgImageControls" style="display:none">
+            <div class="bg-img-thumb-row">
+              <img id="bgImageThumb" class="bg-img-thumb" src="" alt="배경 이미지">
+              <button class="bg-img-remove-btn" id="bgImageRemove" title="이미지 제거">✕</button>
+            </div>
+
+            <div class="deco-divider" style="margin:0.6rem 0"></div>
+
+            <!-- 크기 -->
+            <div class="sub-section-title">크기</div>
+            <div class="bg-img-size-row">
+              <div class="bg-img-size-field">
+                <label class="deco-label">너비 (%)</label>
+                <div class="size-input-wrap">
+                  <input type="number" class="size-input" id="bgImgWidth" value="100" min="10" max="500">
+                  <div class="size-btns">
+                    <button class="size-btn" id="bgImgWidthUp">▲</button>
+                    <button class="size-btn" id="bgImgWidthDown">▼</button>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-img-size-field">
+                <label class="deco-label">높이 (%)</label>
+                <div class="size-input-wrap">
+                  <input type="number" class="size-input" id="bgImgHeight" value="100" min="10" max="500">
+                  <div class="size-btns">
+                    <button class="size-btn" id="bgImgHeightUp">▲</button>
+                    <button class="size-btn" id="bgImgHeightDown">▼</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <label class="bg-img-lock-row">
+              <input type="checkbox" id="bgImgLock" checked>
+              <span class="deco-label" style="margin:0">가로세로 비율 고정</span>
+            </label>
+
+            <div class="deco-divider" style="margin:0.6rem 0"></div>
+
+            <!-- 위치 -->
+            <div class="sub-section-title">위치</div>
+            <div class="bg-img-size-row">
+              <div class="bg-img-size-field">
+                <label class="deco-label">X (%)</label>
+                <div class="size-input-wrap">
+                  <input type="number" class="size-input" id="bgImgX" value="50" min="-200" max="200">
+                  <div class="size-btns">
+                    <button class="size-btn" id="bgImgXUp">▲</button>
+                    <button class="size-btn" id="bgImgXDown">▼</button>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-img-size-field">
+                <label class="deco-label">Y (%)</label>
+                <div class="size-input-wrap">
+                  <input type="number" class="size-input" id="bgImgY" value="50" min="-200" max="200">
+                  <div class="size-btns">
+                    <button class="size-btn" id="bgImgYUp">▲</button>
+                    <button class="size-btn" id="bgImgYDown">▼</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="deco-divider" style="margin:0.6rem 0"></div>
+
+            <!-- 불투명도 -->
+            <div class="sub-section-title">불투명도</div>
+            <div class="opacity-row">
+              <label class="opacity-label" for="bgImgOpacity">불투명도 <span class="opacity-badge" id="bgImgOpacityBadge">100%</span></label>
+              <input type="range" class="opacity-slider" id="bgImgOpacity" min="0" max="100" value="100">
+            </div>
+
+            <div class="deco-divider" style="margin:0.6rem 0"></div>
+
+            <!-- 이미지 변경 버튼 -->
+            <label class="bg-img-change-btn" for="bgImageChange">이미지 변경</label>
+            <input type="file" id="bgImageChange" accept="image/*" style="display:none">
+          </div>
+        </section>
+
         <div class="deco-divider"></div>
       </div>
 
@@ -496,4 +593,3 @@
   <script src="decorate.js"></script>
 </body>
 </html>
-

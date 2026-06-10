@@ -159,6 +159,123 @@ const addOpacityControl = (inputId, sliderId, value, onInput) => {
   });
 };
 
+// ===== 배경 이미지 상태 =====
+let bgImageDataUrl = null;   // base64 data URL
+let bgImgNaturalW = 0;
+let bgImgNaturalH = 0;
+let bgImgWidthPct = 100;
+let bgImgHeightPct = 100;
+let bgImgXPct = 50;
+let bgImgYPct = 50;
+let bgImgOpacityVal = 1.0;
+
+// 비율 고정용 원본 비율
+let bgImgAspect = 1; // w/h
+
+const getBgImgLayer = () => {
+  let layer = document.getElementById('calBgImageLayer');
+  if (!layer) {
+    layer = document.createElement('div');
+    layer.id = 'calBgImageLayer';
+    layer.className = 'cal-bg-image';
+    layer.innerHTML = '<img id="calBgImg" src="" alt="">';
+    const cal = document.getElementById('previewCal');
+    cal.insertBefore(layer, cal.firstChild);
+  }
+  return layer;
+};
+
+const applyBgImage = () => {
+  if (!bgImageDataUrl) return;
+  const layer = getBgImgLayer();
+  layer.style.display = 'block';
+  const img = layer.querySelector('img');
+  img.src = bgImageDataUrl;
+
+  const cal = document.getElementById('previewCal');
+  const calW = cal.offsetWidth;
+  const calH = cal.offsetHeight;
+
+  const imgW = calW * (bgImgWidthPct / 100);
+  const imgH = calH * (bgImgHeightPct / 100);
+
+  // X, Y: 0%=왼쪽/위, 50%=가운데, 100%=오른쪽/아래
+  const posX = (calW - imgW) * (bgImgXPct / 100);
+  const posY = (calH - imgH) * (bgImgYPct / 100);
+
+  img.style.width   = imgW + 'px';
+  img.style.height  = imgH + 'px';
+  img.style.left    = posX + 'px';
+  img.style.top     = posY + 'px';
+  img.style.opacity = bgImgOpacityVal;
+};
+
+const removeBgImage = () => {
+  bgImageDataUrl = null;
+  const layer = document.getElementById('calBgImageLayer');
+  if (layer) layer.style.display = 'none';
+  document.getElementById('bgImageControls').style.display = 'none';
+  document.getElementById('bgImageUploadArea').style.display = 'block';
+  markUnsaved();
+};
+
+const loadBgImageFile = (file) => {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    bgImageDataUrl = e.target.result;
+    // 자연 크기 파악
+    const tmpImg = new Image();
+    tmpImg.onload = () => {
+      bgImgNaturalW = tmpImg.naturalWidth;
+      bgImgNaturalH = tmpImg.naturalHeight;
+      bgImgAspect = bgImgNaturalW / bgImgNaturalH;
+      // 기본 100%로 초기화
+      bgImgWidthPct  = 100;
+      bgImgHeightPct = 100;
+      bgImgXPct = 50;
+      bgImgYPct = 50;
+      bgImgOpacityVal = 1.0;
+      syncBgImgControls();
+      document.getElementById('bgImageThumb').src = bgImageDataUrl;
+      document.getElementById('bgImageUploadArea').style.display = 'none';
+      document.getElementById('bgImageControls').style.display = 'block';
+      applyBgImage();
+      markUnsaved();
+    };
+    tmpImg.src = bgImageDataUrl;
+  };
+  reader.readAsDataURL(file);
+};
+
+const syncBgImgControls = () => {
+  document.getElementById('bgImgWidth').value  = bgImgWidthPct;
+  document.getElementById('bgImgHeight').value = bgImgHeightPct;
+  document.getElementById('bgImgX').value = bgImgXPct;
+  document.getElementById('bgImgY').value = bgImgYPct;
+  document.getElementById('bgImgOpacity').value = Math.round(bgImgOpacityVal * 100);
+  document.getElementById('bgImgOpacityBadge').textContent = Math.round(bgImgOpacityVal * 100) + '%';
+};
+
+// 가로/세로 비율 고정 헬퍼
+const adjustHeight = (newW) => {
+  if (!document.getElementById('bgImgLock').checked) return;
+  const cal = document.getElementById('previewCal');
+  const calW = cal.offsetWidth, calH = cal.offsetHeight;
+  // 픽셀 너비 → 픽셀 높이 → % 높이
+  const pxW = calW * (newW / 100);
+  const pxH = pxW / bgImgAspect;
+  return Math.round((pxH / calH) * 100);
+};
+const adjustWidth = (newH) => {
+  if (!document.getElementById('bgImgLock').checked) return;
+  const cal = document.getElementById('previewCal');
+  const calW = cal.offsetWidth, calH = cal.offsetHeight;
+  const pxH = calH * (newH / 100);
+  const pxW = pxH * bgImgAspect;
+  return Math.round((pxW / calW) * 100);
+};
+
 // ===== 저장 상태 추적 =====
 let isSaved = true; // 처음엔 기본값 상태 = 저장됨으로 간주
 
@@ -659,6 +776,14 @@ const buildTheme = () => ({
   headOpacities:  { ...headOpacities },
   headFontColors: { ...headFontColors },
   headFontOpacities: { ...headFontOpacities },
+  bgImage: bgImageDataUrl ? {
+    dataUrl:  bgImageDataUrl,
+    widthPct: bgImgWidthPct,
+    heightPct: bgImgHeightPct,
+    xPct:     bgImgXPct,
+    yPct:     bgImgYPct,
+    opacity:  bgImgOpacityVal,
+  } : null,
 });
 
 const showConfirm = (msg) => new Promise(resolve => {
@@ -759,6 +884,33 @@ const loadThemeIntoEditor = (theme) => {
   applyHeadColors();
   applyHeadFontColors();
   applyTitleColor();
+
+  // 배경 이미지 복원
+  if (theme.bgImage && theme.bgImage.dataUrl) {
+    bgImageDataUrl = theme.bgImage.dataUrl;
+    bgImgWidthPct  = theme.bgImage.widthPct  ?? 100;
+    bgImgHeightPct = theme.bgImage.heightPct ?? 100;
+    bgImgXPct      = theme.bgImage.xPct      ?? 50;
+    bgImgYPct      = theme.bgImage.yPct      ?? 50;
+    bgImgOpacityVal = theme.bgImage.opacity  ?? 1;
+
+    const tmpImg = new Image();
+    tmpImg.onload = () => {
+      bgImgNaturalW = tmpImg.naturalWidth;
+      bgImgNaturalH = tmpImg.naturalHeight;
+      bgImgAspect   = bgImgNaturalW / bgImgNaturalH;
+    };
+    tmpImg.src = bgImageDataUrl;
+
+    document.getElementById('bgImageThumb').src = bgImageDataUrl;
+    document.getElementById('bgImageUploadArea').style.display = 'none';
+    document.getElementById('bgImageControls').style.display = 'block';
+    syncBgImgControls();
+    applyBgImage();
+  } else {
+    removeBgImage();
+  }
+
   isSaved = true;
 };
 
@@ -785,6 +937,65 @@ document.getElementById('btnDecoApply').addEventListener('click', () => {
   alert('적용되었습니다!');
   location.href = 'index.html';
 });
+// ===== 배경 이미지 이벤트 =====
+document.getElementById('bgImageInput').addEventListener('change', e => {
+  loadBgImageFile(e.target.files[0]);
+  e.target.value = '';
+});
+document.getElementById('bgImageChange').addEventListener('change', e => {
+  loadBgImageFile(e.target.files[0]);
+  e.target.value = '';
+});
+document.getElementById('bgImageRemove').addEventListener('click', removeBgImage);
+
+// 너비 조절
+const setupImgSizeBtn = (inputId, upId, downId, onInput) => {
+  const input = document.getElementById(inputId);
+  input.addEventListener('input', () => { onInput(Number(input.value)); markUnsaved(); });
+  document.getElementById(upId).addEventListener('click', () => {
+    input.value = Number(input.value) + 1;
+    onInput(Number(input.value)); markUnsaved();
+  });
+  document.getElementById(downId).addEventListener('click', () => {
+    input.value = Number(input.value) - 1;
+    onInput(Number(input.value)); markUnsaved();
+  });
+};
+
+setupImgSizeBtn('bgImgWidth', 'bgImgWidthUp', 'bgImgWidthDown', (v) => {
+  bgImgWidthPct = v;
+  const locked = adjustHeight(v);
+  if (locked !== undefined) {
+    bgImgHeightPct = locked;
+    document.getElementById('bgImgHeight').value = locked;
+  }
+  applyBgImage();
+});
+
+setupImgSizeBtn('bgImgHeight', 'bgImgHeightUp', 'bgImgHeightDown', (v) => {
+  bgImgHeightPct = v;
+  const locked = adjustWidth(v);
+  if (locked !== undefined) {
+    bgImgWidthPct = locked;
+    document.getElementById('bgImgWidth').value = locked;
+  }
+  applyBgImage();
+});
+
+setupImgSizeBtn('bgImgX', 'bgImgXUp', 'bgImgXDown', (v) => {
+  bgImgXPct = v; applyBgImage();
+});
+setupImgSizeBtn('bgImgY', 'bgImgYUp', 'bgImgYDown', (v) => {
+  bgImgYPct = v; applyBgImage();
+});
+
+document.getElementById('bgImgOpacity').addEventListener('input', e => {
+  bgImgOpacityVal = Number(e.target.value) / 100;
+  document.getElementById('bgImgOpacityBadge').textContent = e.target.value + '%';
+  applyBgImage();
+  markUnsaved();
+});
+
 // ===== 나가기 =====
 document.getElementById('btnDecoExit').addEventListener('click', () => {
   location.href = 'index.html';
@@ -845,6 +1056,3 @@ window.onload = () => {
   });
   applyHeadFontColors();
 };
-
-
-
