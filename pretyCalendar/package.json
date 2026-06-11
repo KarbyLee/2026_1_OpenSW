@@ -1,19 +1,35 @@
 {
   "name": "pretycalendar",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "build:helper": "dotnet publish DesktopHelper/DesktopHelper.csproj -c Release -r win-x64 --self-contained true",
+    "build:app": "npm run build:helper && electron-builder",
     "build": "electron-builder"
   },
   "devDependencies": {
-    "electron": "^...",
-    "electron-builder": "^..."
+    "electron": "^42.3.0",
+    "electron-builder": "^26.8.1"
   },
   "build": {
     "appId": "com.pretycalendar.app",
+    "productName": "Pretty Calendar",
+    "afterPack": "scripts/afterPack.js",
+    "extraResources": [
+      {
+        "from": "DesktopHelper/bin/Release/net10.0/win-x64/publish",
+        "to": "DesktopHelper"
+      }
+    ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "Images/pretty-calendar-icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "installerIcon": "Images/pretty-calendar-icon.ico",
+      "uninstallerIcon": "Images/pretty-calendar-icon.ico"
     }
   }
 }

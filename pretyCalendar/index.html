@@ -21,15 +21,36 @@
         </div>
         <ul class="sidebar-menu">
             <li onclick="location.href='decorate.html'">🎨 캘린더 꾸미기</li>
+            <li id="placeWidgetButton">바탕화면에 배치하기</li>
         </ul>
     </div>
 
     <!-- 캘린더 본체 -->
+    <div class="widget-statusbar" id="widgetStatusbar">
+        <div class="widget-option-wrap">
+            <button class="widget-status-button" id="widgetOptionButton" type="button" aria-label="옵션">
+                <img src="Images/optionIcon.png" alt="">
+            </button>
+            <div class="widget-option-menu" id="widgetOptionMenu">
+                <div class="widget-option-title">위젯 크기 조절</div>
+                <div class="widget-size-options">
+                    <button type="button" data-widget-size="large">크게</button>
+                    <button type="button" data-widget-size="medium">중간</button>
+                    <button type="button" data-widget-size="small">작게</button>
+                </div>
+                <button class="widget-open-app" id="widgetOpenApp" type="button">앱으로 이동</button>
+            </div>
+        </div>
+        <button class="widget-status-button widget-delete-button" id="widgetDeleteButton" type="button" aria-label="위젯 삭제">
+            <img src="Images/exitIcon.png" alt="">
+        </button>
+    </div>
+
     <div class="rap">
         <div class="header">
-            <div class="btn prevDay"></div>
+            <button class="cal-arrow prevDay" type="button">‹</button>
             <h2 class="dateTitle"></h2>
-            <div class="btn nextDay"></div>
+            <button class="cal-arrow nextDay" type="button">›</button>
         </div>
 
         <div class="grid dateHead">

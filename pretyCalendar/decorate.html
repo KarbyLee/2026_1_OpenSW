@@ -52,17 +52,6 @@
           </div>
 
           <div class="deco-row">
-            <label class="deco-label">폰트 사이즈 (px)</label>
-            <div class="size-input-wrap">
-              <input type="number" class="size-input" id="fontSize" value="14" min="8" max="32">
-              <div class="size-btns">
-                <button class="size-btn" id="sizeUp">▲</button>
-                <button class="size-btn" id="sizeDown">▼</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="deco-row">
             <label class="deco-label">폰트 색상</label>
 
 
@@ -249,6 +238,7 @@
               </div>
             </div>
           </div>
+
         </section>
 
         <div class="deco-divider"></div>
@@ -471,10 +461,11 @@
           </div>
         </section>
 
-        <!-- 배경 이미지 섹션 -->
+        <!-- 이미지 섹션 -->
         <section class="deco-section" id="bgImageSection">
-          <h3 class="deco-section-title">배경 이미지</h3>
+          <h3 class="deco-section-title">이미지</h3>
           <div class="deco-divider"></div>
+          <p class="sub-section-title">배경 이미지</p>
 
           <!-- 이미지 없을 때: 업로드 버튼 -->
           <div id="bgImageUploadArea">
@@ -565,6 +556,45 @@
             <!-- 이미지 변경 버튼 -->
             <label class="bg-img-change-btn" for="bgImageChange">이미지 변경</label>
             <input type="file" id="bgImageChange" accept="image/*" style="display:none">
+          </div>
+
+          <div class="deco-divider"></div>
+          <p class="sub-section-title">스티커 이미지</p>
+          <label class="bg-img-upload-btn" for="stickerImageInput">
+            <span>스티커 추가</span>
+          </label>
+          <input type="file" id="stickerImageInput" accept="image/*" multiple style="display:none">
+          <p class="bg-img-hint">배경 이미지를 포함해 최대 5개까지 추가할 수 있습니다</p>
+
+          <div class="sticker-list" id="stickerList"></div>
+
+          <div class="sticker-editor" id="stickerEditor" style="display:none">
+            <div class="sub-section-title">선택한 스티커 수정</div>
+            <div class="bg-img-size-row">
+              <div class="bg-img-size-field">
+                <label class="deco-label" for="stickerWidth">너비 (%)</label>
+                <input type="number" class="size-input" id="stickerWidth" min="2" max="300">
+              </div>
+              <div class="bg-img-size-field">
+                <label class="deco-label" for="stickerHeight">높이 (%)</label>
+                <input type="number" class="size-input" id="stickerHeight" min="2" max="300">
+              </div>
+            </div>
+            <div class="bg-img-size-row">
+              <div class="bg-img-size-field">
+                <label class="deco-label" for="stickerX">X (%)</label>
+                <input type="number" class="size-input" id="stickerX" min="-100" max="200">
+              </div>
+              <div class="bg-img-size-field">
+                <label class="deco-label" for="stickerY">Y (%)</label>
+                <input type="number" class="size-input" id="stickerY" min="-100" max="200">
+              </div>
+            </div>
+            <div class="opacity-row">
+              <label class="opacity-label" for="stickerOpacity">불투명도 <span class="opacity-badge" id="stickerOpacityBadge">100%</span></label>
+              <input type="range" class="opacity-slider" id="stickerOpacity" min="0" max="100" value="100">
+            </div>
+            <button class="reset-btn sticker-delete-btn" id="stickerDelete" type="button">선택한 스티커 삭제</button>
           </div>
         </section>
 

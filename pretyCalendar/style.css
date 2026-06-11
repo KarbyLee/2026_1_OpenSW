@@ -14,12 +14,34 @@
   box-sizing: border-box;
 }
 
+html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   background-color: transparent;
   font-family: 'Pretendard', sans-serif;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.widget-statusbar {
+  display: none;
 }
 
 /* ===== 옵션 아이콘 (전체 화면 왼쪽 상단 고정) ===== */
+.widget-mode .option-icon,
+.widget-mode .sidebar,
+.widget-mode .sidebar-overlay {
+  display: none !important;
+}
+
 .option-icon {
   position: fixed;
   top: 16px;
@@ -30,21 +52,153 @@ body {
   opacity: 0.7;
   transition: opacity 0.2s;
   z-index: 400;
+  -webkit-app-region: no-drag;
 }
 
 .option-icon:hover { opacity: 1; }
 
-/* ===== 캘린더 (1.5배 확대) ===== */
+/* ===== 캘린더 ===== */
 .rap {
-  max-width: 1025px;
-  padding: 1.75rem;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: 100%;
+  padding: 1.2rem;
   margin: 0 auto;
   background-color: var(--cal-bg, #fff);
-  border-radius: 19px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  border-radius: 0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.10);
   font-family: var(--cal-font, 'Pretendard', sans-serif);
-  font-size: var(--cal-font-size, 1rem);
+  font-size: 1rem;
   color: var(--font-week-color, #222);
+  position: relative;
+  overflow: hidden;
+  transition: background 0.25s, color 0.25s;
+  display: flex;
+  flex-direction: column;
+}
+
+.widget-mode .rap {
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.widget-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 4px;
+}
+
+.widget-mode .widget-statusbar {
+  display: flex;
+  flex: 0 0 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 2px 4px;
+  background: var(--widget-bg, #fff);
+  position: relative;
+  z-index: 700;
+}
+
+.widget-option-wrap {
+  position: relative;
+}
+
+.widget-status-button {
+  width: 26px;
+  height: 26px;
+  padding: 5px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  opacity: 0.68;
+  -webkit-app-region: no-drag;
+}
+
+.widget-status-button:hover {
+  background: rgba(127, 127, 127, 0.18);
+  opacity: 1;
+}
+
+.widget-delete-button:hover {
+  background: rgba(227, 27, 32, 0.16);
+}
+
+.widget-status-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.widget-option-menu {
+  display: none;
+  position: absolute;
+  top: 30px;
+  right: 0;
+  width: 164px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #222;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  z-index: 710;
+}
+
+.widget-option-menu.open {
+  display: block;
+}
+
+.widget-option-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.widget-size-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  margin-bottom: 8px;
+}
+
+.widget-size-options button,
+.widget-open-app {
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.widget-size-options button {
+  padding: 4px 2px;
+  font-size: 0.68rem;
+}
+
+.widget-open-app {
+  width: 100%;
+  padding: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.widget-size-options button:hover,
+.widget-open-app:hover {
+  background: #ededed;
+}
+
+.widget-mode.widget-dragging .rap {
+  cursor: grabbing;
 }
 
 /* 캘린더 내부 모든 요소 폰트 상속 */
@@ -56,45 +210,77 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 2.5rem;    /* 1 * 1.5 / 2 * 1.5 */
+  padding: 0.8rem 1.5rem;
+  margin-bottom: 0.6rem;
+  flex: 0 0 auto;
+}
+
+.app-mode {
+  min-height: 100vh;
+  height: auto;
+  padding: 2rem;
+  overflow: auto;
+}
+
+.app-mode .rap {
+  height: auto;
+  max-width: 912px;
+  padding: 1.8rem;
+}
+
+.app-mode .dateBoard .day-cell,
+.app-mode .noColor {
+  min-height: 6rem;
 }
 
 .header h2 {
-  font-size: 1.5rem;
+  font-size: 1.45rem;
+  font-weight: 700;
   color: var(--title-color, var(--font-week-color, #222));
 }
 
-.btn {
-  display: block;
-  width: 19px;             /* 15 * 1.5 */
-  height: 19px;
-  border: 3px solid #333;
-  border-width: 3px 3px 0 0;
+.cal-arrow {
+  width: 1.8rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: #bbb;
   cursor: pointer;
-  transition: 0.2s;
+  user-select: none;
+  -webkit-app-region: no-drag;
 }
 
-.btn:hover { border-color: #e31b20; }
-.prevDay { transform: rotate(-135deg); }
-.nextDay { transform: rotate(45deg); }
+.cal-arrow:hover { color: #888; }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-gap: 10px;          /* 8 * 1.5 */
+  gap: 0;
 }
 
-.dateHead { margin: .6rem 0; }
+.dateHead {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.dateBoard {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-auto-rows: minmax(0, 1fr);
+}
 
 /* 요일 헤더 공통 - 검은색 */
 .dateHead div {
   background: var(--head-week-bg, #333);
   color: var(--head-week-font, #fff);
   text-align: center;
-  border-radius: 6px;
-  padding: .75rem;          /* .6 * 1.5 */
+  border-radius: 0;
+  padding: 0.65rem;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .dateHead div.sun { background: var(--head-sun-bg, #e31b20); color: var(--head-sun-font, #fff); }
@@ -102,41 +288,42 @@ body {
 
 /* 날짜 셀 공통 */
 .dateBoard .day-cell {
-  min-height: 6.25rem;
-  padding: 1rem;
-  border-radius: 10px;
-  border: 1px solid #f0f0f0;
+  position: relative;
+  min-height: 0;
+  padding: 0.55rem;
+  border-radius: 0;
+  border: 1px solid rgba(0,0,0,0.08);
   background: var(--cell-bg, transparent);
   cursor: pointer;
-  transition: 0.2s;
+  transition: background 0.2s;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   overflow: hidden;
 }
 
 .dateBoard .day-cell:hover {
-  background-color: #fff5f5;
-  border-color: #e31b20;
+  background: var(--cell-bg, transparent);
+  border-color: rgba(0,0,0,0.08);
 }
 
 .day-top {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-shrink: 0;
 }
 
 .day-num {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: var(--font-week-color, #222);
   flex-shrink: 0;
 }
 
 /* 공휴일 이름 */
 .holiday-name {
-  font-size: 0.78rem;
+  font-size: 0.67rem;
   font-weight: 600;
   color: var(--font-sun-color, #e31b20);
   white-space: nowrap;
@@ -149,36 +336,36 @@ body {
   color: #c0151a;
   background: #ffe5e5;
   padding: 1px 5px;
-  border-radius: 3px;
+  border-radius: 0;
   font-size: 0.72rem;
 }
 
 /* 토요일 */
 .day-cell.saturday .day-num { color: var(--font-sat-color, #1b6ae3); }
-.day-cell.saturday:hover { background-color: #f0f5ff; border-color: #1b6ae3; }
+.day-cell.saturday:hover { background: var(--cell-bg, transparent); border-color: rgba(0,0,0,0.08); }
 
 /* 일요일 & 공휴일 */
 .day-cell.sunday .day-num { color: var(--font-sun-color, #e31b20); }
-.day-cell.sunday:hover { background-color: #fff0f0; border-color: #e31b20; }
+.day-cell.sunday:hover { background: var(--cell-bg, transparent); border-color: rgba(0,0,0,0.08); }
 
 /* 메모 미리보기 */
 .memo-preview {
-  font-size: 0.85rem;
+  font-size: 0.74rem;
   color: #666;
-  line-height: 1.4;
+  opacity: 0.6;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   word-break: break-all;
 }
 
 /* 이전/다음 달 빈 칸 */
 .noColor {
-  background: var(--other-cell-bg, #f9f9f9);
-  min-height: 6.25rem;
-  border-radius: 10px;
-  border: 1px solid #f0f0f0;
+  background: var(--cell-bg, transparent);
+  min-height: 0;
+  border-radius: 0;
+  border: 1px solid rgba(0,0,0,0.08);
   position: relative;
   overflow: hidden;
 }
@@ -186,16 +373,17 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--other-overlay-color, transparent);
+  background: var(--other-cell-bg, rgba(150,150,150,0.3));
   pointer-events: none;
+  z-index: 0;
 }
 .noColor-num {
   position: relative;
   z-index: 1;
   display: inline-block;
-  padding: 1rem;
+  padding: 0.55rem;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: var(--other-number-color, #969696);
   opacity: var(--other-number-opacity, 0.3);
 }
@@ -368,47 +556,53 @@ body {
 
 /* 평일 오늘: 회색 계열 */
 .day-cell.today {
-  background-color: var(--today-bg, #f5f5f5);
-  border: 2.5px solid var(--today-border, #bbb);
+  background: var(--cell-bg, transparent);
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.day-cell.today::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--today-bg, rgba(100,100,100,0.13));
+  border: 2px solid var(--today-border, rgba(100,100,100,0.35));
+  border-radius: 0;
+  pointer-events: none;
+  z-index: 0;
 }
 .day-cell.today:hover {
-  background-color: var(--today-bg-hover, #eeeeee);
-  border-color: var(--today-border-hover, #999);
+  background: var(--cell-bg, transparent);
+}
+.day-cell.today > * {
+  position: relative;
+  z-index: 1;
 }
 .day-num.today-num {
   font-weight: 900;
   background-color: var(--today-num-bg, #d6d6d6);
-  color: var(--today-num-color, #222);
-  border-radius: 5px;
-  padding: 1px 5px;
+  border-radius: 0;
+  padding: 1px 4px;
   display: inline-block;
 }
 
-/* 일요일/공휴일 오늘: 붉은색 계열 */
 .day-cell.today.sunday {
-  background-color: #fff0f0;
-  border: 2.5px solid #e31b20;
+  background: var(--cell-bg, transparent);
+  border: 1px solid rgba(0,0,0,0.08);
 }
 .day-cell.today.sunday:hover {
-  background-color: #ffe5e5;
-  border-color: #c0151a;
+  background: var(--cell-bg, transparent);
 }
 .day-cell.today.sunday .day-num.today-num {
-  background-color: #f9a8a8;
-  color: #a00;
+  background-color: var(--today-num-bg, #d6d6d6);
 }
 
-/* 토요일 오늘: 파란색 계열 */
 .day-cell.today.saturday {
-  background-color: #f0f5ff;
-  border: 2.5px solid #1b6ae3;
+  background: var(--cell-bg, transparent);
+  border: 1px solid rgba(0,0,0,0.08);
 }
 .day-cell.today.saturday:hover {
-  background-color: #e5eeff;
-  border-color: #1455c0;
+  background: var(--cell-bg, transparent);
 }
 .day-cell.today.saturday .day-num.today-num {
-  background-color: #a8c4f9;
-  color: #0a3a99;
+  background-color: var(--today-num-bg, #d6d6d6);
 }
 

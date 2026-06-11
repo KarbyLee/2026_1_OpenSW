@@ -8,6 +8,59 @@ const PREV_LAST = 28;
 
 const board = document.getElementById('previewBoard');
 
+const THEME_DB_NAME = 'prettyCalendarAssetsV3';
+const THEME_STORE_NAME = 'themes';
+const openThemeDb = () => new Promise((resolve, reject) => {
+  const request = indexedDB.open(THEME_DB_NAME, 1);
+  request.onupgradeneeded = () => {
+    if (!request.result.objectStoreNames.contains(THEME_STORE_NAME)) {
+      request.result.createObjectStore(THEME_STORE_NAME);
+    }
+  };
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => reject(request.error);
+});
+const saveFullTheme = async theme => {
+  const db = await openThemeDb();
+  await new Promise((resolve, reject) => {
+    const transaction = db.transaction(THEME_STORE_NAME, 'readwrite');
+    transaction.objectStore(THEME_STORE_NAME).put(theme, 'calendarTheme');
+    transaction.oncomplete = resolve;
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error);
+  });
+  db.close();
+};
+const loadFullTheme = async () => {
+  const db = await openThemeDb();
+  const theme = await new Promise((resolve, reject) => {
+    const request = db.transaction(THEME_STORE_NAME, 'readonly').objectStore(THEME_STORE_NAME).get('calendarTheme');
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  db.close();
+  return theme;
+};
+const deleteFullTheme = async () => {
+  const db = await openThemeDb();
+  await new Promise((resolve, reject) => {
+    const transaction = db.transaction(THEME_STORE_NAME, 'readwrite');
+    transaction.objectStore(THEME_STORE_NAME).delete('calendarTheme');
+    transaction.oncomplete = resolve;
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error);
+  });
+  db.close();
+};
+const hasFileAssets = theme =>
+  Boolean(theme.bgImage?.dataUrl) ||
+  Boolean(theme.stickers?.length);
+const makeLightTheme = theme => ({
+  ...theme,
+  bgImage: theme.bgImage ? { ...theme.bgImage, dataUrl: '' } : null,
+  stickers: [],
+});
+
 const renderPreview = () => {
   const totalCells = Math.ceil((FIRST_DOW + TOTAL_DAYS) / 7) * 7;
   let html = '';
@@ -197,7 +250,7 @@ const applyBgImage = () => {
   const calH = cal.offsetHeight;
 
   const imgW = calW * (bgImgWidthPct / 100);
-  const imgH = calH * (bgImgHeightPct / 100);
+  const imgH = calW * (bgImgHeightPct / 100);
 
   // X, Y: 0%=왼쪽/위, 50%=가운데, 100%=오른쪽/아래
   const posX = (calW - imgW) * (bgImgXPct / 100);
@@ -221,6 +274,10 @@ const removeBgImage = () => {
 
 const loadBgImageFile = (file) => {
   if (!file) return;
+  if (!bgImageDataUrl && totalImageCount() >= 5) {
+    alert('이미지는 최대 5개까지 추가할 수 있습니다.');
+    return;
+  }
   const reader = new FileReader();
   reader.onload = (e) => {
     bgImageDataUrl = e.target.result;
@@ -232,7 +289,7 @@ const loadBgImageFile = (file) => {
       bgImgAspect = bgImgNaturalW / bgImgNaturalH;
       // 기본 100%로 초기화
       bgImgWidthPct  = 100;
-      bgImgHeightPct = 100;
+      bgImgHeightPct = Math.round((100 / bgImgAspect) * 10) / 10;
       bgImgXPct = 50;
       bgImgYPct = 50;
       bgImgOpacityVal = 1.0;
@@ -260,21 +317,188 @@ const syncBgImgControls = () => {
 // 가로/세로 비율 고정 헬퍼
 const adjustHeight = (newW) => {
   if (!document.getElementById('bgImgLock').checked) return;
-  const cal = document.getElementById('previewCal');
-  const calW = cal.offsetWidth, calH = cal.offsetHeight;
-  // 픽셀 너비 → 픽셀 높이 → % 높이
-  const pxW = calW * (newW / 100);
-  const pxH = pxW / bgImgAspect;
-  return Math.round((pxH / calH) * 100);
+  return Math.round((newW / bgImgAspect) * 10) / 10;
 };
 const adjustWidth = (newH) => {
   if (!document.getElementById('bgImgLock').checked) return;
-  const cal = document.getElementById('previewCal');
-  const calW = cal.offsetWidth, calH = cal.offsetHeight;
-  const pxH = calH * (newH / 100);
-  const pxW = pxH * bgImgAspect;
-  return Math.round((pxW / calW) * 100);
+  return Math.round((newH * bgImgAspect) * 10) / 10;
 };
+
+// ===== 스티커 이미지 =====
+let stickers = [];
+let selectedStickerId = null;
+
+const getStickerLayer = () => {
+  let layer = document.getElementById('calStickerLayer');
+  if (!layer) {
+    layer = document.createElement('div');
+    layer.id = 'calStickerLayer';
+    layer.className = 'cal-sticker-layer';
+    document.getElementById('previewCal').appendChild(layer);
+  }
+  return layer;
+};
+
+const getSelectedSticker = () => stickers.find(sticker => sticker.id === selectedStickerId);
+const totalImageCount = () => stickers.length + (bgImageDataUrl ? 1 : 0);
+
+const syncStickerEditor = () => {
+  const sticker = getSelectedSticker();
+  const editor = document.getElementById('stickerEditor');
+  editor.style.display = sticker ? 'block' : 'none';
+  if (!sticker) return;
+  document.getElementById('stickerWidth').value = Math.round(sticker.width * 10) / 10;
+  document.getElementById('stickerHeight').value = Math.round(sticker.height * 10) / 10;
+  document.getElementById('stickerX').value = Math.round(sticker.x * 10) / 10;
+  document.getElementById('stickerY').value = Math.round(sticker.y * 10) / 10;
+  document.getElementById('stickerOpacity').value = Math.round(sticker.opacity * 100);
+  document.getElementById('stickerOpacityBadge').textContent = `${Math.round(sticker.opacity * 100)}%`;
+};
+
+const selectSticker = (id) => {
+  selectedStickerId = id;
+  renderStickers();
+};
+
+const renderStickerList = () => {
+  const list = document.getElementById('stickerList');
+  list.innerHTML = stickers.map(sticker => `
+    <button class="sticker-list-item${sticker.id === selectedStickerId ? ' selected' : ''}" data-sticker-id="${sticker.id}" type="button">
+      <img src="${sticker.dataUrl}" alt="스티커">
+    </button>
+  `).join('');
+  list.querySelectorAll('.sticker-list-item').forEach(button => {
+    button.addEventListener('click', () => selectSticker(button.dataset.stickerId));
+  });
+};
+
+const startStickerPointerAction = (event, sticker, mode) => {
+  event.preventDefault();
+  event.stopPropagation();
+  selectSticker(sticker.id);
+  const cal = document.getElementById('previewCal');
+  const rect = cal.getBoundingClientRect();
+  const startX = event.clientX;
+  const startY = event.clientY;
+  const initial = { ...sticker };
+  const initialW = rect.width * (initial.width / 100);
+  const initialH = rect.width * (initial.height / 100);
+  const freeW = Math.max(1, rect.width - initialW);
+  const freeH = Math.max(1, rect.height - initialH);
+
+  const move = (moveEvent) => {
+    const pixelDx = moveEvent.clientX - startX;
+    const pixelDy = moveEvent.clientY - startY;
+    if (mode === 'move') {
+      sticker.x = initial.x + (pixelDx / freeW) * 100;
+      sticker.y = initial.y + (pixelDy / freeH) * 100;
+    } else {
+      sticker.width = Math.max(2, initial.width + (pixelDx / rect.width) * 100);
+      sticker.height = Math.max(2, initial.height + (pixelDy / rect.width) * 100);
+    }
+    renderStickers();
+    markUnsaved();
+  };
+  const end = () => {
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', end);
+  };
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', end);
+};
+
+const renderStickers = () => {
+  const layer = getStickerLayer();
+  layer.innerHTML = '';
+  const cal = document.getElementById('previewCal');
+  const calW = cal.offsetWidth;
+  const calH = cal.offsetHeight;
+  stickers.forEach(sticker => {
+    const width = calW * (sticker.width / 100);
+    const height = calW * (sticker.height / 100);
+    const left = (calW - width) * (sticker.x / 100);
+    const top = (calH - height) * (sticker.y / 100);
+    const item = document.createElement('div');
+    item.className = `cal-sticker${sticker.id === selectedStickerId ? ' selected' : ''}`;
+    item.style.left = `${left}px`;
+    item.style.top = `${top}px`;
+    item.style.width = `${width}px`;
+    item.style.height = `${height}px`;
+    item.style.opacity = sticker.opacity;
+    item.innerHTML = `<img src="${sticker.dataUrl}" alt=""><span class="sticker-resize-handle"></span>`;
+    item.addEventListener('mousedown', event => startStickerPointerAction(event, sticker, 'move'));
+    item.querySelector('.sticker-resize-handle').addEventListener('mousedown', event => startStickerPointerAction(event, sticker, 'resize'));
+    layer.appendChild(item);
+  });
+  renderStickerList();
+  syncStickerEditor();
+};
+
+const addStickerFile = (file) => {
+  if (!file || totalImageCount() >= 5) return;
+  const reader = new FileReader();
+  reader.onload = event => {
+    const image = new Image();
+    image.onload = () => {
+      const cal = document.getElementById('previewCal');
+      const width = 20;
+      const height = width / (image.naturalWidth / image.naturalHeight);
+      const sticker = {
+        id: `sticker-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        dataUrl: event.target.result,
+        x: 50,
+        y: 50,
+        width,
+        height,
+        opacity: 1,
+      };
+      stickers.push(sticker);
+      selectedStickerId = sticker.id;
+      renderStickers();
+      markUnsaved();
+    };
+    image.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+document.getElementById('stickerImageInput').addEventListener('change', event => {
+  const remaining = Math.max(0, 5 - totalImageCount());
+  if (!remaining) alert('이미지는 최대 5개까지 추가할 수 있습니다.');
+  Array.from(event.target.files).slice(0, remaining).forEach(addStickerFile);
+  event.target.value = '';
+});
+
+document.getElementById('previewCal').addEventListener('mousedown', event => {
+  if (event.target.closest('.cal-sticker')) return;
+  selectedStickerId = null;
+  renderStickers();
+});
+
+['Width', 'Height', 'X', 'Y'].forEach(key => {
+  document.getElementById(`sticker${key}`).addEventListener('input', event => {
+    const sticker = getSelectedSticker();
+    if (!sticker) return;
+    sticker[key.toLowerCase()] = Number(event.target.value);
+    renderStickers();
+    markUnsaved();
+  });
+});
+
+document.getElementById('stickerOpacity').addEventListener('input', event => {
+  const sticker = getSelectedSticker();
+  if (!sticker) return;
+  sticker.opacity = Number(event.target.value) / 100;
+  renderStickers();
+  markUnsaved();
+});
+
+document.getElementById('stickerDelete').addEventListener('click', () => {
+  stickers = stickers.filter(sticker => sticker.id !== selectedStickerId);
+  selectedStickerId = null;
+  renderStickers();
+  markUnsaved();
+});
 
 // ===== 저장 상태 추적 =====
 let isSaved = true; // 처음엔 기본값 상태 = 저장됨으로 간주
@@ -574,6 +798,7 @@ document.getElementById('highlightOpacity').addEventListener('input', e => apply
 document.querySelectorAll('.reset-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const key = btn.dataset.key;
+    if (!key) return;
     const def = '#' + btn.dataset.default;
     if (key.startsWith('headfont-')) {
       const sub = key.replace('headfont-', '');
@@ -647,32 +872,16 @@ document.querySelectorAll('.toggle-header').forEach(header => {
 });
 
 // ===== 폰트 종류 =====
-document.getElementById('fontFamily').addEventListener('change', (e) => {
+const applySelectedFont = (fontFamily) => {
   markUnsaved();
+  document.getElementById('fontFamily').value = fontFamily;
   const cal = document.getElementById('previewCal');
-  cal.style.fontFamily = e.target.value;
+  cal.style.fontFamily = fontFamily;
   cal.querySelectorAll('*').forEach(el => el.style.fontFamily = 'inherit');
-});
-
-// ===== 폰트 사이즈 =====
-const sizeInput = document.getElementById('fontSize');
-
-const applyFontSize = (val) => {
-  let n = parseInt(val, 10);
-  if (isNaN(n)) return;
-  n = Math.max(8, Math.min(32, n));
-  sizeInput.value = n;
-  document.getElementById('previewCal').style.fontSize = n + 'px';
 };
 
-sizeInput.addEventListener('input', (e) => { markUnsaved(); applyFontSize(e.target.value); });
-sizeInput.addEventListener('change', (e) => { markUnsaved(); applyFontSize(e.target.value); });
-
-document.getElementById('sizeUp').addEventListener('click', () => {
-  applyFontSize(parseInt(sizeInput.value, 10) + 1);
-});
-document.getElementById('sizeDown').addEventListener('click', () => {
-  applyFontSize(parseInt(sizeInput.value, 10) - 1);
+document.getElementById('fontFamily').addEventListener('change', event => {
+  applySelectedFont(event.target.value);
 });
 
 // ===== 요일 헤더 색상 =====
@@ -760,8 +969,9 @@ const headFontPickers = {
 
 // ===== 스타일 불러오기 / 적용 =====
 const buildTheme = () => ({
+  savedAt: Date.now(),
+  imageLayoutVersion: 2,
   font:     document.getElementById('fontFamily').value,
-  fontSize: sizeInput.value + 'px',
   bg:       currentBg,
   bgOpacity: currentBgOpacity,
   fontColors:     { ...fontColors },
@@ -784,6 +994,7 @@ const buildTheme = () => ({
     yPct:     bgImgYPct,
     opacity:  bgImgOpacityVal,
   } : null,
+  stickers: stickers.map(sticker => ({ ...sticker })),
 });
 
 const showConfirm = (msg) => new Promise(resolve => {
@@ -821,6 +1032,22 @@ const setHeadFontColor = (key, hex) => {
 };
 
 const loadThemeIntoEditor = (theme) => {
+  const cal = document.getElementById('previewCal');
+  const legacyLayout = theme.imageLayoutVersion !== 2;
+  const legacyHeightToWidth = value => value * (cal.offsetHeight / cal.offsetWidth);
+  const migrateLegacySticker = sticker => {
+    if (!legacyLayout) return { ...sticker };
+    const widthPx = cal.offsetWidth * ((sticker.width ?? 20) / 100);
+    const heightPx = cal.offsetHeight * ((sticker.height ?? 20) / 100);
+    const freeW = Math.max(1, cal.offsetWidth - widthPx);
+    const freeH = Math.max(1, cal.offsetHeight - heightPx);
+    return {
+      ...sticker,
+      x: (cal.offsetWidth * ((sticker.x ?? 40) / 100) / freeW) * 100,
+      y: (cal.offsetHeight * ((sticker.y ?? 40) / 100) / freeH) * 100,
+      height: legacyHeightToWidth(sticker.height ?? 20),
+    };
+  };
   const loaded = {
     bg: theme.bg || LIGHT_THEME.bg,
     bgOpacity: theme.bgOpacity ?? LIGHT_THEME.bgOpacity,
@@ -839,14 +1066,12 @@ const loadThemeIntoEditor = (theme) => {
   };
 
   if (theme.font) {
-    document.getElementById('fontFamily').value = theme.font;
+    const fontSelect = document.getElementById('fontFamily');
+    const exists = Array.from(fontSelect.options).some(option => option.value === theme.font);
+    fontSelect.value = exists ? theme.font : fontSelect.options[0].value;
     const cal = document.getElementById('previewCal');
-    cal.style.fontFamily = theme.font;
+    cal.style.fontFamily = fontSelect.value;
     cal.querySelectorAll('*').forEach(el => el.style.fontFamily = 'inherit');
-  }
-
-  if (theme.fontSize) {
-    applyFontSize(parseInt(theme.fontSize, 10));
   }
 
   currentBgOpacity = loaded.bgOpacity;
@@ -889,7 +1114,9 @@ const loadThemeIntoEditor = (theme) => {
   if (theme.bgImage && theme.bgImage.dataUrl) {
     bgImageDataUrl = theme.bgImage.dataUrl;
     bgImgWidthPct  = theme.bgImage.widthPct  ?? 100;
-    bgImgHeightPct = theme.bgImage.heightPct ?? 100;
+    bgImgHeightPct = legacyLayout
+      ? legacyHeightToWidth(theme.bgImage.heightPct ?? 100)
+      : theme.bgImage.heightPct ?? 100;
     bgImgXPct      = theme.bgImage.xPct      ?? 50;
     bgImgYPct      = theme.bgImage.yPct      ?? 50;
     bgImgOpacityVal = theme.bgImage.opacity  ?? 1;
@@ -911,6 +1138,12 @@ const loadThemeIntoEditor = (theme) => {
     removeBgImage();
   }
 
+  stickers = Array.isArray(theme.stickers)
+    ? theme.stickers.slice(0, theme.bgImage ? 4 : 5).map(migrateLegacySticker)
+    : [];
+  selectedStickerId = null;
+  renderStickers();
+
   isSaved = true;
 };
 
@@ -918,24 +1151,58 @@ document.getElementById('btnDecoSave').addEventListener('click', async () => {
   const yes = await showConfirm('스타일을 불러오시겠습니까?');
   if (!yes) return;
 
-  const raw = localStorage.getItem('calendarTheme');
-  if (!raw) {
+  let theme;
+  try {
+    theme = await loadFullTheme();
+  } catch (error) {
+    console.error('스타일 불러오기 오류:', error);
+  }
+  if (!theme) {
+    const raw = localStorage.getItem('calendarTheme');
+    if (raw) theme = JSON.parse(raw);
+  }
+  if (!theme) {
     alert('인덱스에 적용된 스타일이 없습니다.');
     return;
   }
 
   try {
-    loadThemeIntoEditor(JSON.parse(raw));
+    loadThemeIntoEditor(theme);
   } catch (e) {
     alert('스타일을 불러오지 못했습니다.');
   }
 });
 
-document.getElementById('btnDecoApply').addEventListener('click', () => {
-  localStorage.setItem('calendarTheme', JSON.stringify(buildTheme()));
-  isSaved = true;
-  alert('적용되었습니다!');
-  location.href = 'index.html';
+document.getElementById('btnDecoApply').addEventListener('click', async () => {
+  const button = document.getElementById('btnDecoApply');
+  button.disabled = true;
+  const theme = buildTheme();
+  try {
+    if (hasFileAssets(theme)) {
+      try {
+        await saveFullTheme(theme);
+        localStorage.setItem('calendarTheme', JSON.stringify(makeLightTheme(theme)));
+      } catch (assetError) {
+        console.warn('파일 저장소 저장 실패, localStorage 전체 저장 시도:', assetError);
+        localStorage.setItem('calendarTheme', JSON.stringify(theme));
+      }
+    } else {
+      localStorage.setItem('calendarTheme', JSON.stringify(makeLightTheme(theme)));
+      try {
+        await deleteFullTheme();
+      } catch (error) {
+        console.warn('이전 파일 스타일 삭제 생략:', error);
+      }
+    }
+    isSaved = true;
+    window.widgetApi?.themeApplied();
+    alert('적용되었습니다!');
+    location.href = 'index.html';
+  } catch (error) {
+    console.error('스타일 적용 오류:', error);
+    alert(`스타일을 저장하지 못했습니다: ${error?.name || '저장소 오류'}`);
+    button.disabled = false;
+  }
 });
 // ===== 배경 이미지 이벤트 =====
 document.getElementById('bgImageInput').addEventListener('change', e => {
@@ -1005,6 +1272,7 @@ document.getElementById('btnDecoExit').addEventListener('click', () => {
 window.onload = () => {
   isSaved = true;
   setupOpacityControls();
+  renderStickers();
   bgPicker.init();
   defaultCellPicker.init();
   otherPicker.init();

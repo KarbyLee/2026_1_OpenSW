@@ -1,2 +1,35 @@
+# Node.js 의존성
 node_modules/
+
+# Electron 빌드 결과 및 설치 파일
 dist/
+
+# .NET DesktopHelper 빌드 결과
+DesktopHelper/bin/
+DesktopHelper/obj/
+
+# 환경 변수
+.env
+.env.*
+!.env.example
+
+# 로그 및 임시 파일
+*.log
+*.tmp
+*.bak
+*.old
+*~
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# 코드 편집기
+.vscode/
+.idea/
+
+# 운영체제 생성 파일
+.DS_Store
+Thumbs.db
+desktop.ini

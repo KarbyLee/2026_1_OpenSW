@@ -5,6 +5,30 @@ const API_URL = 'https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoServic
 let date = new Date();
 let selectedDateKey = null;
 
+const THEME_DB_NAME = 'prettyCalendarAssetsV3';
+const THEME_STORE_NAME = 'themes';
+const loadFullTheme = () => new Promise((resolve) => {
+  const request = indexedDB.open(THEME_DB_NAME, 1);
+  request.onupgradeneeded = () => {
+    if (!request.result.objectStoreNames.contains(THEME_STORE_NAME)) {
+      request.result.createObjectStore(THEME_STORE_NAME);
+    }
+  };
+  request.onerror = () => resolve(null);
+  request.onsuccess = () => {
+    const db = request.result;
+    const getRequest = db.transaction(THEME_STORE_NAME, 'readonly').objectStore(THEME_STORE_NAME).get('calendarTheme');
+    getRequest.onsuccess = () => {
+      resolve(getRequest.result || null);
+      db.close();
+    };
+    getRequest.onerror = () => {
+      resolve(null);
+      db.close();
+    };
+  };
+});
+
 // 연도별 공휴일 캐시 { 2025: { 'YYYY-MM-DD': '공휴일명', ... } }
 const holidayCache = {};
 
@@ -94,7 +118,7 @@ const makeCalendar = async (targetDate) => {
   const hasOtherTheme = appliedTheme.otherCell && appliedTheme.otherOpacity !== undefined;
   const otherOpacity = hasOtherTheme ? Number(appliedTheme.otherOpacity) : 0.3;
   const otherColor = hasOtherTheme ? appliedTheme.otherCell : '#969696';
-  const otherCellStyle = ` style="background-color:${hexToRgba(otherColor, otherOpacity)} !important;"`;
+  const otherCellStyle = '';
   const otherNumStyle = ` style="color:${otherColor};opacity:${otherOpacity}"`;
 
   // 이전 달 칸
@@ -207,23 +231,53 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => {
 });
 
 // ===== 테마 적용 =====
-const applyTheme = () => {
+const applyTheme = async () => {
   const raw = localStorage.getItem('calendarTheme');
-  if (!raw) return;
+  const fullTheme = await loadFullTheme();
+  if (!raw && !fullTheme) return;
   try {
-    const t = JSON.parse(raw);
+    const lightTheme = raw ? JSON.parse(raw) : null;
+    const t = fullTheme && (!lightTheme || (fullTheme.savedAt ?? 0) >= (lightTheme.savedAt ?? 0))
+      ? fullTheme
+      : lightTheme;
     const root = document.querySelector('.rap');
     if (!root) return;
+
+    if (t.imageLayoutVersion !== 2) {
+      const rootW = root.offsetWidth;
+      const rootH = root.offsetHeight;
+      if (t.bgImage) {
+        t.bgImage.heightPct = (t.bgImage.heightPct ?? 100) * (rootH / rootW);
+      }
+      if (Array.isArray(t.stickers)) {
+        t.stickers = t.stickers.map(sticker => {
+          const width = rootW * ((sticker.width ?? 20) / 100);
+          const height = rootH * ((sticker.height ?? 20) / 100);
+          return {
+            ...sticker,
+            x: (rootW * ((sticker.x ?? 40) / 100) / Math.max(1, rootW - width)) * 100,
+            y: (rootH * ((sticker.y ?? 40) / 100) / Math.max(1, rootH - height)) * 100,
+            height: (sticker.height ?? 20) * (rootH / rootW),
+          };
+        });
+      }
+      t.imageLayoutVersion = 2;
+      localStorage.setItem('calendarTheme', JSON.stringify({
+        ...t,
+        bgImage: t.bgImage ? { ...t.bgImage, dataUrl: '' } : null,
+        stickers: [],
+      }));
+    }
 
     if (t.font) {
       root.style.setProperty('--cal-font', t.font);
       root.style.fontFamily = t.font; // 직접도 적용
     }
-    if (t.fontSize) {
-      root.style.setProperty('--cal-font-size', t.fontSize);
-      root.style.fontSize = t.fontSize;
+    if (t.bg) {
+      const calendarBackground = hexToRgba(t.bg, t.bgOpacity ?? 1);
+      root.style.setProperty('--cal-bg', calendarBackground);
+      document.documentElement.style.setProperty('--widget-bg', calendarBackground);
     }
-    if (t.bg) root.style.setProperty('--cal-bg', hexToRgba(t.bg, t.bgOpacity ?? 1));
 
     if (t.fontColors) {
       root.style.setProperty('--font-week-color', hexToRgba(t.fontColors.week || '#222222', t.fontOpacities?.week ?? 1));
@@ -250,13 +304,12 @@ const applyTheme = () => {
       const g = parseInt(t.highlightColor.slice(3,5),16);
       const b = parseInt(t.highlightColor.slice(5,7),16);
       const op  = t.highlightOpacity;
-      const opB = Math.min(1, op * 2.5);
+      const opB = Math.min(1, op + 0.22);
       root.style.setProperty('--today-bg',           `rgba(${r},${g},${b},${op})`);
       root.style.setProperty('--today-bg-hover',     `rgba(${r},${g},${b},${Math.min(1,op+0.05)})`);
       root.style.setProperty('--today-border',       `rgba(${r},${g},${b},${opB})`);
       root.style.setProperty('--today-border-hover', `rgba(${r},${g},${b},${Math.min(1,opB+0.1)})`);
-      root.style.setProperty('--today-num-bg',       `rgba(${r},${g},${b},${Math.min(1,op*2)})`);
-      root.style.setProperty('--today-num-color',    t.bg && isHexDark(t.bg) ? '#eee' : '#222');
+      root.style.setProperty('--today-num-bg',       `rgba(${r},${g},${b},${op})`);
     }
 
     if (t.headColors) {
@@ -277,24 +330,32 @@ const applyTheme = () => {
         if (!bgLayer) {
           bgLayer = document.createElement('div');
           bgLayer.id = 'calBgImageLayer';
-          bgLayer.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;border-radius:19px;';
           bgLayer.innerHTML = '<img id="calBgImg" style="position:absolute;transform-origin:top left;" src="" alt="">';
           rap.style.position = 'relative';
           rap.insertBefore(bgLayer, rap.firstChild);
-          // 캘린더 내부 요소들이 이미지 위에 오도록
-          rap.querySelectorAll('.header, .dateHead, .dateBoard').forEach(el => {
-            el.style.position = 'relative';
-            el.style.zIndex   = '1';
-          });
         }
 
+        bgLayer.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;border-radius:0;';
+        rap.querySelectorAll('.header, .dateHead, .dateBoard').forEach(el => {
+          el.style.position = 'relative';
+          el.style.zIndex   = '1';
+        });
+
         const img = bgLayer.querySelector('img');
-        const { dataUrl, widthPct=100, heightPct=100, xPct=50, yPct=50, opacity=1 } = t.bgImage;
-        img.src = dataUrl;
-        img.onload = () => {
+        const {
+          dataUrl,
+          widthPct=100,
+          heightPct=100,
+          xPct=50,
+          yPct=50,
+          opacity=1,
+        } = t.bgImage;
+        const layoutBgImage = () => {
           const rapW = rap.offsetWidth, rapH = rap.offsetHeight;
           const imgW = rapW * (widthPct / 100);
-          const imgH = rapH * (heightPct / 100);
+          const imgH = t.imageLayoutVersion === 2
+            ? rapW * (heightPct / 100)
+            : rapH * (heightPct / 100);
           const posX = (rapW - imgW) * (xPct / 100);
           const posY = (rapH - imgH) * (yPct / 100);
           img.style.width   = imgW + 'px';
@@ -303,12 +364,52 @@ const applyTheme = () => {
           img.style.top     = posY + 'px';
           img.style.opacity = opacity;
         };
+        img.onload = layoutBgImage;
+        img.src = dataUrl;
+        if (img.complete) layoutBgImage();
+        requestAnimationFrame(layoutBgImage);
         bgLayer.style.display = 'block';
       }
     } else {
       const bgLayer = document.getElementById('calBgImageLayer');
       if (bgLayer) bgLayer.style.display = 'none';
     }
+
+    let stickerLayer = document.getElementById('calStickerLayer');
+    if (!stickerLayer) {
+      stickerLayer = document.createElement('div');
+      stickerLayer.id = 'calStickerLayer';
+      root.appendChild(stickerLayer);
+    }
+    stickerLayer.style.cssText = 'position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden;border-radius:0;';
+    stickerLayer.innerHTML = '';
+    (Array.isArray(t.stickers) ? t.stickers : []).slice(0, t.bgImage ? 4 : 5).forEach(sticker => {
+      const rootW = root.offsetWidth;
+      const rootH = root.offsetHeight;
+      const width = rootW * ((sticker.width ?? 20) / 100);
+      const height = t.imageLayoutVersion === 2
+        ? rootW * ((sticker.height ?? 20) / 100)
+        : rootH * ((sticker.height ?? 20) / 100);
+      const left = t.imageLayoutVersion === 2
+        ? (rootW - width) * ((sticker.x ?? 50) / 100)
+        : rootW * ((sticker.x ?? 40) / 100);
+      const top = t.imageLayoutVersion === 2
+        ? (rootH - height) * ((sticker.y ?? 50) / 100)
+        : rootH * ((sticker.y ?? 40) / 100);
+      const item = document.createElement('img');
+      item.src = sticker.dataUrl;
+      item.alt = '';
+      item.style.cssText = [
+        'position:absolute',
+        `left:${left}px`,
+        `top:${top}px`,
+        `width:${width}px`,
+        `height:${height}px`,
+        `opacity:${sticker.opacity ?? 1}`,
+        'object-fit:fill',
+      ].join(';');
+      stickerLayer.appendChild(item);
+    });
   } catch(e) { console.error('테마 적용 오류:', e); }
 };
 
@@ -319,36 +420,156 @@ const isHexDark = (hex) => {
   return (r*0.299+g*0.587+b*0.114) < 128;
 };
 
-window.onload = () => { applyTheme(); makeCalendar(date); };
-
-document.querySelector('.prevDay').onclick = () => {
-  date.setMonth(date.getMonth() - 1);
-  makeCalendar(new Date(date));
-};
-
-document.querySelector('.nextDay').onclick = () => {
-  date.setMonth(date.getMonth() + 1);
-  makeCalendar(new Date(date));
-};
-// ===== 사이드바 =====
-const sidebar        = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-const optionIcon     = document.getElementById('optionIcon');
-
-const openSidebar = () => {
-  sidebar.classList.add('open');
-  sidebarOverlay.classList.add('active');
-};
-
-const closeSidebar = () => {
-  sidebar.classList.remove('open');
-  sidebarOverlay.classList.remove('active');
-};
-
-// 아이콘 클릭: 토글
-optionIcon.addEventListener('click', () => {
-  sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+let themeResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(themeResizeTimer);
+  themeResizeTimer = setTimeout(() => applyTheme(), 60);
 });
 
-// 사이드바 바깥(오버레이) 클릭: 닫기
-sidebarOverlay.addEventListener('click', closeSidebar);
+window.onload = async () => {
+  await makeCalendar(date);
+  await applyTheme();
+};
+
+document.querySelector('.prevDay').onclick = async () => {
+  date.setMonth(date.getMonth() - 1);
+  await makeCalendar(new Date(date));
+  await applyTheme();
+};
+
+document.querySelector('.nextDay').onclick = async () => {
+  date.setMonth(date.getMonth() + 1);
+  await makeCalendar(new Date(date));
+  await applyTheme();
+};
+const isWidgetMode = window.widgetApi?.mode === 'widget';
+document.body.classList.add(isWidgetMode ? 'widget-mode' : 'app-mode');
+
+if (isWidgetMode) {
+  let dragPointerId = null;
+  let lastScreenX = 0;
+  let lastScreenY = 0;
+  let dragDistance = 0;
+  let didDrag = false;
+
+  const isWidgetControl = (target) => target.closest(
+    'button, textarea, input, select, .modal, .modal-overlay.active'
+  );
+  const dragSurfaces = document.querySelectorAll('.rap, .widget-statusbar');
+
+  const optionButton = document.getElementById('widgetOptionButton');
+  const optionMenu = document.getElementById('widgetOptionMenu');
+
+  optionButton?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    optionMenu?.classList.toggle('open');
+  });
+
+  document.getElementById('widgetDeleteButton')?.addEventListener('click', () => {
+    window.widgetApi?.removeWidget();
+  });
+
+  document.getElementById('widgetOpenApp')?.addEventListener('click', () => {
+    optionMenu?.classList.remove('open');
+    window.widgetApi?.openApp();
+  });
+
+  document.querySelectorAll('[data-widget-size]').forEach(button => {
+    button.addEventListener('click', () => {
+      optionMenu?.classList.remove('open');
+      window.widgetApi?.setSizePreset(button.dataset.widgetSize);
+    });
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.widget-option-wrap')) optionMenu?.classList.remove('open');
+  });
+
+  dragSurfaces.forEach(surface => {
+    surface.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || isWidgetControl(event.target)) return;
+
+      dragPointerId = event.pointerId;
+      lastScreenX = event.screenX;
+      lastScreenY = event.screenY;
+      dragDistance = 0;
+      didDrag = false;
+      event.currentTarget.setPointerCapture(event.pointerId);
+    });
+
+    surface.addEventListener('pointermove', (event) => {
+      if (event.pointerId !== dragPointerId) return;
+
+      const deltaX = event.screenX - lastScreenX;
+      const deltaY = event.screenY - lastScreenY;
+      lastScreenX = event.screenX;
+      lastScreenY = event.screenY;
+      dragDistance += Math.abs(deltaX) + Math.abs(deltaY);
+
+      if (dragDistance < 7) return;
+      didDrag = true;
+      document.body.classList.add('widget-dragging');
+      window.widgetApi?.moveBy(deltaX, deltaY);
+    });
+  });
+
+  const finishWidgetDrag = (event) => {
+    if (event.pointerId !== dragPointerId) return;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    dragPointerId = null;
+    document.body.classList.remove('widget-dragging');
+    if (didDrag) window.widgetApi?.finishMove();
+  };
+
+  dragSurfaces.forEach(surface => {
+    surface.addEventListener('pointerup', finishWidgetDrag);
+    surface.addEventListener('pointercancel', finishWidgetDrag);
+    surface.addEventListener('click', (event) => {
+      if (!didDrag) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      didDrag = false;
+    }, true);
+  });
+
+  document.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.widgetApi?.showDeleteMenu();
+  }, true);
+}
+
+if (!isWidgetMode) {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const optionIcon = document.getElementById('optionIcon');
+
+  const openSidebar = () => {
+    sidebar?.classList.add('open');
+    sidebarOverlay?.classList.add('active');
+  };
+  const closeSidebar = () => {
+    sidebar?.classList.remove('open');
+    sidebarOverlay?.classList.remove('active');
+  };
+
+  optionIcon?.addEventListener('click', () => {
+    sidebar?.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+  sidebarOverlay?.addEventListener('click', closeSidebar);
+
+  document.querySelector('.sidebar-menu li:first-child')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    closeSidebar();
+    location.href = 'decorate.html';
+  }, true);
+
+  document.getElementById('placeWidgetButton')?.addEventListener('click', () => {
+    closeSidebar();
+    window.widgetApi?.placeWidget();
+  });
+}
